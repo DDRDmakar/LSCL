@@ -1,0 +1,48 @@
+
+
+/*
+	regex keys
+	link namespaces    #look ()
+	pre-defined sections (like #define in C)
+*/
+
+
+number_list: [0, 1, 2, 3, 4, 5, 6, 7]
+
+number key: 000000
+
+my name: DDRDmakar
+
+tree_root:
+	key 1:
+	[
+		item 1,
+		item 2,
+		item 3
+	]
+	key 2: &'key 2 link' [
+		item 1,
+		item 2,
+		item 3
+	]
+	key 3: [
+		item 1
+		item 2
+		item 3]
+	
+	key 4:
+	&"key 4 link"
+	[
+		item 1
+		item 2, item 3
+	]
+
+	key 5:
+		- item 1
+		- item 2
+		- item 3
+	
+
+key 2 + extra:
+	#look (tree_root, "key 2")
+	*"key 2 link"

@@ -1,4 +1,5 @@
 *.o
 *.directory
 *.kdev4
-
+*.so
+*.a

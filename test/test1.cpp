@@ -5,6 +5,6 @@ using namespace std;
 
 int main()
 {
-	std::cout << testfunction() << std::endl;
+	std::cout << LSCL::testfunction() << std::endl;
 	return 0;
 }

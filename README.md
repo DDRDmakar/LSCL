@@ -1,2 +1,2 @@
 # LSCL
-Local Stuff Configuration Language
+Local Stuff Configuration Language)

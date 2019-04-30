@@ -2,14 +2,16 @@
 
 /*
 	regex keys
+	links
 	link namespaces    #look ()
 	pre-defined sections (like #define in C)
+	dump parameters for each node
 */
 
 
 number_list: [0, 1, 2, 3, 4, 5, 6, 7]
 
-number key: 000000
+number key: 000000 // key with spaces is also available
 
 my name: DDRDmakar
 
@@ -22,9 +24,9 @@ tree_root:
 		item 3
 	],
 	key 2: &'key 2 link' [
-		item 1,
+		item 1
 		item 2,
-		item 3
+		item 3,
 	],
 	key 3: [
 		item 1
@@ -37,12 +39,39 @@ tree_root:
 		item 1
 		item 2, item 3
 	],
-
-	key 5: [,'item 1', 'item 2', 'item 3',]
+	
+	key 5: [,'item 1', 'item 2', 'item 3',] # Commas in the beginning and in the end
+	,
+	key_6:
+	[
+		item 1
+		item 2
+		item 3
+		'item: 4'
+		"item \
+		5"
+		"item\x20;\
+		6"
+	],
+	
+	key_7: *"key 2 link"
 }
 
-key 2 + extra:
-	#look (tree_root."key 2") {*"key 2 link"}
-	[
-		item 4
-	]
+key 2 + extra 1:
+#look (tree_root."key 2") #base (*'key 2 link')
+[
+	item 4
+]
+
+key 2 + extra 2:
+#base (tree_root."key 2")
+[
+	item 4
+]
+
+linked_item: #look (tree_root."key 2")
+{
+	a: 42
+	b: *'key 2 link'
+}
+

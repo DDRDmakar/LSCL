@@ -2,8 +2,20 @@
 \include{options}
 \include{listing}
 
-
 \begin{document}
+
+%\renewcommand{\thelstlisting}{
+%  \ifnum\value{subsection}=0
+%    \thesection.\arabic{lstlisting}
+%  \else
+%    \ifnum\value{subsubsection}=0
+%      \thesubsection.\arabic{lstlisting}
+%    \else
+%      \thesubsubsection.\arabic{lstlisting}
+%    \fi
+%  \fi
+%}
+
 \large
 
 \include{titlepage}
@@ -12,9 +24,258 @@
 
 \tableofcontents
 \newpage
+\listoffigures
+\newpage
+\lstlistoflistings
+\newpage
 
-%\listoffigures
-%\newpage
+\section{Status of this document}
+This document reflects the first version of LSCL configuration language. 
+
+\section{Abstract}
+LSCL is a human-friendly, cross-language, Unicode-based configuration and data serialization language designed around the common native data types. It is designed to be useful as configuration language for local programs on your machine, LSCL contains special features useful for config files, but it's also possible to use it as data serialization language.
+
+\section{Introduction}
+LSCL (Local Stuff Configuration Language) is a human-friendly configuration and data serialization language. This specification contains all information about LSCL syntax and contents, needed for LSCL processing. \\
+LSCL is designed to work with Unicode characters, but all control sequences contain ASCII characters only. LSCL achieves effective data structure by using links, includes, differences and appending containers, so you don't need to write the same things twice. \\
+LSCL is fundamentally built around tree basic primitives as all the most popular data-serialization languages. \\
+There are not so many languages in the world, which stand for storing and transmitting data. LSCL was specially created to work well for common use cases such as: configuration files, log files, interprocess messaging, cross-language data sharing, object persistence and debugging of complex data structures. When data is easy to view and understand, programming becomes a simpler task. \\
+The creation of this language, it's syntax and structure, was inspired by a bunch of data-serialization and programming languages, their pros and cons, history and mistakes. The syntax was motivated by:
+\begin{itemize}
+	\item YAML
+	\item JSON
+	\item C++
+	\item System Verilog
+	\item Python
+\end{itemize}
+
+\subsection{Goals}
+\begin{enumerate}
+	%\item Commented well source code
+	\item Easy readable by humans syntax
+	\item Data is portable between programming languages
+	\item Machines the native data structures of agile languages
+	\item Is expressive and extensible
+	\item Is easy to implement and use
+	\item Supports references and full path usage to locate node
+	\item Able to define lists and maps as already existing ones and some difference (added or removed elements)
+	\item Supports {\#}include of other configuration files in your tree as nodes
+	\item Supports regex as keys in map structures
+	\item Designed to use one config as many configs with unsignificant difference
+\end{enumerate}
+
+\subsection{LSCL relation to JSON}
+JSON is one of 2 the most popular data serialization languages (JSON and XML), and also easy to read and modify. \\
+XML has the same capabilities as JSON, but it is older and less human-friendly. \\
+LSCL is designed to be backwards-compatible with JSON, so you'll be able to work with your old files using new library.
+
+\subsection{LSCL relation to YAML}
+Author of this standard used YAML for a long time in a big project, but there were not enough features for local YAML usage, as we needed. YAML language is designed more as a language for data-transfers, so it doesn't allow appendig data structures, including files and other features, which you need in your local config. \\
+Other YAML features were mistakes, on the other hand. They were implemented into the language, but were too complex and useless in most cases. For example, YAML allows to use any node as a key in the map, not only scalars. \\
+YAML, of cource, influenced LSCL the most, even this document structure was taken from YAML 1.2 standard. \\
+In LSCL we analyzed advantages and disadvantages of all YAML capabilities and tried to improve them in this standard. \\
+We respect XML, JSON, YAML and other data-representation languages, but we need to move on.
+
+\subsection{Terminology}
+This specification uses key words based on RFC2119 to indicate requirement level. In particular, the following words are used to describe the actions of LSCL processor:\\
+\begin{itemize}
+	\item [\textbf{[May]}] The word may, or the adjective optional, mean that conforming LSCL processors are permitted to, but need not behave as described. \\
+	\item [\textbf{[Should]}] The word should, or the adjective recommended, mean that there could be reasons for a LSCL processor to deviate from the behavior described, but that such deviation could hurt interoperability and should therefore be advertised with appropriate notice. \\
+	\item [\textbf{[Must]}] The word must, or the term required or shall, mean that the behavior described is an absolute requirement of the specification.
+\end{itemize}
+
+%The rest of this document is arranged as follows. Chapter 2 provides a short preview of the main YAML features. Chapter 3 describes the YAML information model, and the processes for converting from and to this model and the YAML text format. The bulk of the document, chapters 4 through 9, formally define this text format. Finally, chapter 10 recommends basic YAML schemas.
+
+\section{Preview}
+This section provides quick glimpse into LSCLconstructions and features.
+
+\subsection{Collections}
+LSCL's block collections use curved brackets for maps and normal brackets for lists. Mappings use colon ``:'' to mark each key: value pair. Elements of list or map are separated by comma sign ``,'' or newline character. This language uses C-style comments (single and multiline).
+
+~\\
+\begin{minipage}{0.45\textwidth}
+\begin{lstlisting}[caption = list]
+pesnya:
+[
+	oc
+	toc
+	perevertoc
+]
+\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+\begin{lstlisting}[caption = map]
+pesnya:
+{
+	babushka: zdorova
+	kushaet: kompot
+}
+\end{lstlisting}
+\end{minipage}
+
+~\\
+\begin{minipage}{0.45\textwidth}
+\begin{lstlisting}[caption = list of maps]
+pesnya:
+[
+	{ oc: toc, oc: toc }
+	{ perevertoc: zavertoc }
+]
+\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+\begin{lstlisting}[caption = map of lists]
+pesnya:
+{
+	oc:  [babushka, zdorova]
+	toc: [kushaet, kompot]
+}
+\end{lstlisting}
+\end{minipage}
+
+~\\
+\begin{minipage}{0.45\textwidth}
+\begin{lstlisting}[caption = list of lists]
+pesnya:
+[
+	[babushka, zdorova]
+	[kushaet, kompot]
+]
+\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+\begin{lstlisting}[caption = map of maps]
+pesnya:
+{
+	oc:  { oc: toc, oc: toc }
+	toc: { perevertoc: zavertoc }
+}
+\end{lstlisting}
+\end{minipage}
+~\\
+It's possible to use links instead of defining repeated objects. Link to the node is first identified by an ampersand sign ``\&'' and the following link name. Link could be referenced with an asterisk ``*'' thereafter.
+\begin{lstlisting}[caption = using links]
+oc:  &mylink { oc: toc, oc: toc }
+toc: *mylink
+\end{lstlisting}
+
+\subsection{Scalars}
+LSCL scalars could be written without quotes if they don't contain special chaarcters and newline characters. \\
+Scalars also include two quoted styles. The double-quoted style provides escape sequences. The single-quoted style is useful when escaping is not needed. Quoted scalars can span multiple lines; line breaks are always folded.
+
+~\\
+\begin{minipage}{0.45\textwidth}
+\begin{lstlisting}[caption = plain style]
+oc toc perevertoc
+\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+\begin{lstlisting}[caption = single-quoted style]
+// {toc} is inside quoted string, so it's just a string
+
+'oc {toc} perevertoc'
+\end{lstlisting}
+\end{minipage}
+
+~\\
+\begin{minipage}{0.45\textwidth}
+\begin{lstlisting}[caption = double-quoted style]
+// Newline character is inserted into string
+
+"oc toc\nperevertoc"
+\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+\begin{lstlisting}[caption = multiline scalar]
+// In this case folded libe breaks are ignored, spaces at each line end are saved.
+
+'oc toc perevertoc
+babushka zdorova
+oc toc perevertoc
+kushaet kompot'
+\end{lstlisting}
+\end{minipage}
+~\\
+It's also possible to mark quotes with triangle brackets ``<'' and ``>'' .\\
+So, line breaks would be left in string.
+\begin{lstlisting}[caption = multiline scalar with linebreaks]
+// In this case all line breaks and spaces are saved
+
+<'oc toc perevertoc
+babushka zdorova
+oc toc perevertoc
+kushaet kompot'>
+\end{lstlisting}
+
+\subsection{Tags}
+In LSCL, untagged nodes are given an universal type and stored before usage. To speed up your program and debug data type errors while parsing, you can use tags, defining data type in the node. \\
+Tags are present in LSCL standard, but they should not be supported by any library. So, if you do data transfers using LSCL between programs or between machines, it'd be better not to use tags. \\
+\begin{lstlisting}[caption = integers]
+decimal: 12345
+binary: 0b1100
+octal: 0o14
+hexadecimal: 0x8C1
+// + and - signs are also available with all that integers notations
+\end{lstlisting}
+
+\begin{lstlisting}[caption = floating point]
+fixed: 1230.15
+canonical: 1.23015e+3
+exponential: 12.3015e+02
+positive infinity: +.inf
+negative infinity: -.inf
+not a number: .NaN
+\end{lstlisting}
+
+\begin{lstlisting}[caption = miscellaneous]
+null_scalar:     ,
+null_scalar: NULL
+booleans: [ true, false ]
+string: '012345'
+\end{lstlisting}
+
+Explicit typing is denoted with a tag using exclamation point ``!''. Each library supports it's own list of tags! \\
+For example, basically in C++ library ``LSCL'', such tags are available:
+\begin{itemize}
+	\item !umap -- unordered map
+	\item !omap -- ordered map
+	\item !uset -- unordered set
+	\item !oset -- ordered set
+	\item !llist -- linked list
+	\item !vector -- vector
+	\item !.....blah blah blah too complex
+	\item !binary
+	\item !timestamp
+\end{itemize}
+
+\begin{lstlisting}[caption = various explicit tags]
+// Binary object
+picture: !!binary 
+R0lGODlhDAAMAIQAAP//9/X
+17unp5WZmZgAAAOfn515eXv
+Pz7Y6OjuDg4J+fn5OTk6enp
+56enmleECcgggoBADs=
+
+// Unordered set
+some_node_name: !uset
+[
+	oc
+	toc
+	perevertoc
+]
+
+// Ordered map
+some_node_name: !uset
+{
+	oc: toc
+	babushka: zdorova
+}
+\end{lstlisting}
 
 
 

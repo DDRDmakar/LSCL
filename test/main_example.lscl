@@ -19,15 +19,15 @@ tree_root:
 {
 	key 1:
 	[
-		item 1,
-		item 2,
+		item 1
+		item 2
 		item 3
-	],
+	]
 	key 2: &'key 2 link' [
 		item 1
-		item 2,
-		item 3,
-	],
+		item 2
+		item 3
+	]
 	key 3: [
 		item 1
 		item 2
@@ -38,10 +38,10 @@ tree_root:
 	[
 		item 1
 		item 2, item 3
-	],
+	]
 	
 	key 5: [,'item 1', 'item 2', 'item 3',] # Commas in the beginning and in the end
-	,
+	
 	key_6:
 	[
 		item 1
@@ -52,7 +52,7 @@ tree_root:
 		5"
 		"item\x20;\
 		6"
-	],
+	]
 	
 	key_7: *"key 2 link"
 }

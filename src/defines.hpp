@@ -1,0 +1,7 @@
+
+#ifndef _H_LSCL_DEFINES
+#define _H_LSCL_DEFINES
+
+#define LSCL_PREFETCH_SIZE 0x800
+
+#endif // _H_LSCL_DEFINES

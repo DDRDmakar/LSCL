@@ -1,0 +1,58 @@
+###############################################################################
+## Testing gbBase
+###############################################################################
+
+option(GB_BUILD_TESTS "Determines whether to build tests." ON)
+if(GB_BUILD_TESTS)
+    enable_testing()
+
+    if(NOT TARGET Catch)
+        include(ExternalProject)
+        if(IS_TRAVIS_BUILD)     # on travis, use git for fetching instead of wget
+            set(GB_FETCH_EXTERNAL_CATCH
+                GIT_REPOSITORY https://github.com/philsquared/Catch.git
+                GIT_TAG 19ab2117c5bac2f376f8da4a4b25e183137bcec0)
+        elseif(WIN32)
+            set(GB_FETCH_EXTERNAL_CATCH
+                URL https://github.com/catchorg/Catch2/archive/v2.0.1.zip
+                URL_HASH MD5=1abca1b324b99b1631e999119b172620)
+        else()
+            set(GB_FETCH_EXTERNAL_CATCH
+                URL https://github.com/catchorg/Catch2/archive/v2.0.1.tar.gz
+                URL_HASH MD5=2080f4696579351d9323b3b5a8c3c71b)
+        endif()
+        ExternalProject_Add(Catch-External
+            PREFIX ${CMAKE_BINARY_DIR}/external/Catch
+            ${GB_FETCH_EXTERNAL_CATCH}
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
+            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/external/Catch/src/Catch-External/single_include/catch.hpp
+                                                     ${CMAKE_BINARY_DIR}/external/Catch/include/catch.hpp
+        )
+        add_library(Catch INTERFACE)
+        add_dependencies(Catch Catch-External)
+        target_include_directories(Catch INTERFACE ${CMAKE_BINARY_DIR}/external/Catch/include)
+        target_compile_definitions(Catch INTERFACE $<$<CXX_COMPILER_ID:MSVC>:_SILENCE_CXX17_UNCAUGHT_EXCEPTION_DEPRECATION_WARNING>)
+    endif()
+
+    add_executable(gbBase_Test ${GB_BASE_TEST_SOURCES})
+    target_link_libraries(gbBase_Test PUBLIC gbBase Catch)
+    target_include_directories(gbBase_Test PUBLIC ${GB_BASE_TEST_DIR})
+    target_compile_definitions(gbBase_Test PRIVATE $<$<CONFIG:Debug>:GHULBUS_CONFIG_ASSERT_LEVEL_DEBUG>)
+    add_test(NAME TestBase COMMAND gbBase_Test)
+
+    if(GB_GENERATE_COVERAGE_INFO AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"))
+        target_compile_options(gbBase PRIVATE --coverage)
+        target_link_libraries(gbBase PRIVATE --coverage)
+        target_compile_options(gbBase_Test PRIVATE --coverage)
+        target_link_libraries(gbBase_Test PRIVATE --coverage)
+        add_custom_target(gbBase_TestCoverage
+            COMMAND ${GCOV_COMMAND} -o CMakeFiles/gbBase.dir/src ${GB_BASE_SOURCE_FILES}
+            COMMAND ${GCOV_COMMAND} -o CMakeFiles/gbBase_Test.dir/test ${GB_BASE_TEST_SOURCES}
+            WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+            COMMENT "Collecting gcov coverage information"
+        )
+    endif()
+endif()
+
+###############################################################################

@@ -156,10 +156,17 @@ pesnya:
 \end{lstlisting}
 \end{minipage}
 ~\\
-It's possible to use links instead of defining repeated objects. Link to the node is first identified by an ampersand sign ``\&'' and the following link name. Link could be referenced with an asterisk ``*'' thereafter.
+It's possible to use links instead of defining repeated objects. Link to the node is first identified by an ampersand sign ``\&'' and the following link name. Link could be referenced with an asterisk ``*'' thereafter. If link name could be any string. \\
+You can use full path to object as well as link to the object. To reference node you can use an asterisk ``*'' and following full path in brackets: \texttt{ \Large*("key1"."key2"."key3")} \\
+To reference an element of list you should use index in rectangular brackets instead of key.
+For example: \texttt{ \Large*("key1".[6]."key3")} \\
+Here in an example of using different links in LSCL.
 \begin{lstlisting}[caption = using links]
-oc:  &mylink { oc: toc, oc: toc }
-toc: *mylink
+oc:  &mylink { oc1: toc, oc2: toc }
+toc1: *mylink
+toc2: *"mylink"
+toc3: *(oc)
+toc4: *(oc.oc2)
 \end{lstlisting}
 
 \subsection{Scalars}
@@ -168,7 +175,7 @@ Scalars also include two quoted styles. The double-quoted style provides escape 
 
 ~\\
 \begin{minipage}{0.45\textwidth}
-\begin{lstlisting}[caption = plain style]
+\begin{lstlisting}[ label=lst:plainstyle, caption = plain style]
 oc toc perevertoc
 \end{lstlisting}
 \end{minipage}
@@ -192,7 +199,7 @@ oc toc perevertoc
 \hfill
 \begin{minipage}{0.45\textwidth}
 \begin{lstlisting}[caption = multiline scalar]
-// In this case folded libe breaks are ignored, spaces at each line end are saved.
+// In this case folded line breaks are ignored, spaces at each line end are saved.
 
 'oc toc perevertoc
 babushka zdorova
@@ -255,11 +262,9 @@ For example, basically in C++ library ``LSCL'', such tags are available:
 
 \begin{lstlisting}[caption = various explicit tags]
 // Binary object
-picture: !!binary 
-R0lGODlhDAAMAIQAAP//9/X
-17unp5WZmZgAAAOfn515eXv
-Pz7Y6OjuDg4J+fn5OTk6enp
-56enmleECcgggoBADs=
+picture: !binary 
+'\xA0;\xA0;\x00;\xFF;\x00;
+ \x00;\x88;\x00;\x00;\x00'
 
 // Unordered set
 some_node_name: !uset
@@ -270,7 +275,7 @@ some_node_name: !uset
 ]
 
 // Ordered map
-some_node_name: !uset
+some_node_name: !omap
 {
 	oc: toc
 	babushka: zdorova

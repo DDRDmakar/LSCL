@@ -3,8 +3,9 @@
 #define _H_LSCL_SCALAR
 
 
-
 #include "../lscl/lscl.hpp"
+
+
 
 namespace LSCL
 {

@@ -22,6 +22,7 @@ set(LSCL_SOURCES
 	src/nodebuilder.cpp
 	src/scalar.cpp
 	src/stream.cpp
+	src/global.cpp
 )
 
 set(LSCL_HEADERS
@@ -29,10 +30,6 @@ set(LSCL_HEADERS
 	src/nodebuilder.hpp
 	src/scalar.hpp
 	src/stream.hpp
-)
-
-set(LSCL_TEST_SOURCES
-	test/test1.cpp
 )
 
 include_directories(${CMAKE_SOURCE_DIR})
@@ -63,12 +60,16 @@ set_target_properties(
 )
 
 # TESTING
-option(LSCL_BUILD_TESTS "Determines whether to build tests." ON)
+option(LSCL_BUILD_TESTS "Determines whether to build tests." OFF)
 if(LSCL_BUILD_TESTS)
 	file(GLOB LSCL_SHARED_TEST_SOURCES "test/*.cpp" "test/*.hpp")
 	enable_testing()
 	find_package(Catch2 REQUIRED)
+	include(CTest)
+	include(Catch)
 	add_executable(lscl_shared_test ${LSCL_SHARED_TEST_SOURCES})
+	target_link_libraries(lscl_shared_test Catch2::Catch2)
+	#target_link_libraries(lscl_shared_test ${CMAKE_SOURCE_DIR}/build/liblscl_static.a)
 endif()
 
 install(

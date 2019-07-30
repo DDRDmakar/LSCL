@@ -53,6 +53,15 @@ Stream::Stream(std::istream &input) :
 }
 
 /**
+ * Class destructor
+ * Frees allocated memory
+ */
+Stream::~Stream(void)
+{
+	delete[] rx_buffer;
+}
+
+/**
  * If rx buffer is empty, prefetch fixed count of new bytes from input stream.
  * It's better than fetch them one-by-one
  */
@@ -89,7 +98,7 @@ char Stream::pop_next_char(void) const
 /**
  * Returns next character from input char sequence.
  */
-inline char Stream::peek_next_char(void) const
+char Stream::peek_next_char(void) const
 {
 	if (!setup_rx_buffer()) return '\0';
 	return rx_buffer[n_prefetched_bytes_used];
@@ -98,7 +107,7 @@ inline char Stream::peek_next_char(void) const
 /**
  * Removes next character from input char sequence.
  */
-inline void Stream::eat_next_char(void) const
+void Stream::eat_next_char(void) const
 {
 	if (setup_rx_buffer()) ++n_prefetched_bytes_used;
 }

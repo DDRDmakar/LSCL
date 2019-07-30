@@ -26,7 +26,7 @@ public:
 	explicit Builder(std::istream& input);
 	
 	// If the parser has some valid input to be read
-	//explicit operator bool() const;
+	// explicit operator bool() const;
 protected:
 private:
 	Stream ss;

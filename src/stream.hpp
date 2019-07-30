@@ -21,13 +21,20 @@ namespace Nodebuilder
 class Stream
 {
 public:
-	explicit Stream(std::istream& input);
+	Stream(std::istream& input);
+	~Stream(void);
+	
+	
+	Stream(const Stream&)            = delete;
+	Stream(Stream&&)                 = delete;
+	Stream& operator=(const Stream&) = delete;
+	Stream& operator=(Stream&&)      = delete;
 	
 	inline bool setup_rx_buffer(void) const;
 	
-	char        pop_next_char(void)  const;
-	inline char peek_next_char(void) const;
-	inline void eat_next_char(void)  const;
+	char pop_next_char(void)  const;
+	char peek_next_char(void) const;
+	void eat_next_char(void)  const;
 	
 	bool skip_spaces(void) const;
 	

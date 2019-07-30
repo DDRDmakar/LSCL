@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include "../src/nodebuilder.hpp"
+#include "../src/global.hpp"
 
 namespace LSCL
 {

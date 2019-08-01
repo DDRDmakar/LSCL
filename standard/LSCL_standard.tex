@@ -87,10 +87,10 @@ This specification uses key words based on RFC2119 to indicate requirement level
 %The rest of this document is arranged as follows. Chapter 2 provides a short preview of the main YAML features. Chapter 3 describes the YAML information model, and the processes for converting from and to this model and the YAML text format. The bulk of the document, chapters 4 through 9, formally define this text format. Finally, chapter 10 recommends basic YAML schemas.
 
 \section{Preview}
-This section provides quick glimpse into LSCLconstructions and features.
+This section provides quick glimpse into LSCL constructions and features.
 
 \subsection{Collections}
-LSCL's block collections use curved brackets for maps and normal brackets for lists. Mappings use colon ``:'' to mark each key: value pair. Elements of list or map are separated by comma sign ``,'' or newline character. This language uses C-style comments (single and multiline).
+LSCL's block collections use curved brackets for maps and square brackets for lists. Mappings use colon ``:'' to mark each key: value pair. Elements of list or map are separated by comma sign ``,'' or newline character. This language uses C-style comments (single and multiline).
 
 ~\\
 \begin{minipage}{0.45\textwidth}
@@ -119,7 +119,7 @@ pesnya:
 \begin{lstlisting}[caption = list of maps]
 pesnya:
 [
-	{ oc: toc, oc: toc }
+	{ oc1: toc, oc2: toc }
 	{ perevertoc: zavertoc }
 ]
 \end{lstlisting}
@@ -156,7 +156,7 @@ pesnya:
 \end{lstlisting}
 \end{minipage}
 ~\\
-It's possible to use links instead of defining repeated objects. Link to the node is first identified by an ampersand sign ``\&'' and the following link name. Link could be referenced with an asterisk ``*'' thereafter. If link name could be any string. \\
+It's possible to use links instead of defining repeated objects. Link to the node is first identified by an ampersand sign ``\&'' and the following link name. Link could be referenced with an asterisk ``*'' thereafter. Link name could be any scalar. \\
 You can use full path to object as well as link to the object. To reference node you can use an asterisk ``*'' and following full path in brackets: \texttt{ \Large*("key1"."key2"."key3")} \\
 To reference an element of list you should use index in rectangular brackets instead of key.
 For example: \texttt{ \Large*("key1".[6]."key3")} \\
@@ -217,10 +217,15 @@ So, line breaks would be left in string.
 babushka zdorova
 oc toc perevertoc
 kushaet kompot'>
+
+<"oc toc perevertoc
+babushka zdorova
+oc toc perevertoc
+kushaet kompot">
 \end{lstlisting}
 
 \subsection{Tags}
-In LSCL, untagged nodes are given an universal type and stored before usage. To speed up your program and debug data type errors while parsing, you can use tags, defining data type in the node. \\
+In LSCL, untagged nodes are given an universal type and stored before usage. To speed up your program and debug data type errors while parsing, you can use explicit typing, defining data type in the node. \\
 Tags are present in LSCL standard, but they should not be supported by any library. So, if you do data transfers using LSCL between programs or between machines, it'd be better not to use tags. \\
 \begin{lstlisting}[caption = integers]
 decimal: 12345

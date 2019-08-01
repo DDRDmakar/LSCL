@@ -23,6 +23,8 @@ set(LSCL_SOURCES
 	src/scalar.cpp
 	src/stream.cpp
 	src/global.cpp
+	src/exception.cpp
+	src/node_internal.cpp
 )
 
 set(LSCL_HEADERS
@@ -30,6 +32,8 @@ set(LSCL_HEADERS
 	src/nodebuilder.hpp
 	src/scalar.hpp
 	src/stream.hpp
+	src/exception.hpp
+	src/node_internal.hpp
 )
 
 include_directories(${CMAKE_SOURCE_DIR})

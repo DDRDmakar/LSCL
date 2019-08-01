@@ -90,3 +90,18 @@ TEST_CASE( "Stream", "[nodebuilder]" )
 	}
 	REQUIRE(lscl_stream_2.pop_next_char() == '\0');
 }
+
+TEST_CASE( "Scalar node properties", "[nodes]" )
+{
+	LSCL::Node_internal *root = new LSCL::Node_internal(LSCL::NODETYPE_NONE);
+	REQUIRE(root->get_type() == LSCL::NODETYPE_NONE);
+	REQUIRE(root->is(LSCL::NODETYPE_NONE));
+	REQUIRE(root->get_parent() == nullptr);
+	LSCL::Node_internal scalar(LSCL::NODETYPE_SCALAR, root);
+	REQUIRE(scalar.get_parent() == root);
+	REQUIRE(scalar.get_type() == LSCL::NODETYPE_SCALAR);
+	REQUIRE(scalar.is(LSCL::NODETYPE_SCALAR));
+	LSCL::Node_internal *scalar_ptr = &scalar;
+	REQUIRE(scalar_ptr->get_type() == LSCL::NODETYPE_SCALAR);
+	REQUIRE(scalar_ptr->is(LSCL::NODETYPE_SCALAR));
+}

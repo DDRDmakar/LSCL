@@ -8,16 +8,11 @@
 
 #include "../src/nodebuilder.hpp"
 #include "../src/global.hpp"
+#include "../src/node_internal.hpp" // TODO
 
 namespace LSCL
 {
-	enum Node_type
-	{
-		NODETYPE_VOID, // Restricted to use
-		NODETYPE_MAP,
-		NODETYPE_LIST,
-		NODETYPE_SCALAR
-	};
+	
 
 } // Namespace LSCL
 

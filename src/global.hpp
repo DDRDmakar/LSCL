@@ -17,7 +17,7 @@ namespace LSCL
  * Both I and O are classes, containers such as std::string or std::vector<>
  */
 template <class I, class O>
-O utf8_to_uint32(const I &inp)
+O utf8_to_uint32(const I &inp) noexcept
 {
 	// 0xxx xxxx headbyte 1 -> 0 bytes after
 	// 110x xxxx headbyte 2 -> 1 bytes after
@@ -79,7 +79,7 @@ O utf8_to_uint32(const I &inp)
  * Second argument "len" is a length of given sequence
  */
 template <typename I, class O>
-O utf8_ptr_to_uint32(const I *inp, const unsigned int len)
+O utf8_ptr_to_uint32(const I *inp, const unsigned int len) noexcept
 {
 	return utf8_to_uint32<std::vector<I>, O>
 	(std::vector<I>(inp, inp + len));
@@ -91,7 +91,7 @@ O utf8_ptr_to_uint32(const I *inp, const unsigned int len)
  * So, length could be calculated automatically
  */
 template <class O>
-O utf8_str_to_uint32(const char *inp)
+O utf8_str_to_uint32(const char *inp) noexcept
 {
 	return utf8_to_uint32<std::string, O>
 	(std::string(inp));
@@ -115,7 +115,7 @@ constexpr auto char_ptr_to_wstring          = &utf8_str_to_uint32<std::wstring>;
  * Both I and O are classes, containers such as std::string or std::vector<>
  */
 template <class I, class O>
-O uint32_to_utf8(const I &inp)
+O uint32_to_utf8(const I &inp) noexcept
 {
 	O target;
 	
@@ -219,7 +219,7 @@ O uint32_to_utf8(const I &inp)
  * Second argument "len" is a length of given sequence
  */
 template <typename I, class O>
-O uint32_ptr_to_utf8(const I *inp, const unsigned int len)
+O uint32_ptr_to_utf8(const I *inp, const unsigned int len) noexcept
 {
 	return uint32_to_utf8<std::vector<I>, O>
 	(std::vector<I>(inp, inp + len));
@@ -230,7 +230,7 @@ O uint32_ptr_to_utf8(const I *inp, const unsigned int len)
  * So, length could be calculated automatically
  */
 template <class O>
-O uint32_str_to_utf8(const wchar_t *inp)
+O uint32_str_to_utf8(const wchar_t *inp) noexcept
 {
 	return uint32_to_utf8<std::wstring, O>
 	(std::wstring(inp));
@@ -249,4 +249,4 @@ constexpr auto wchar_ptr_to_string          = &uint32_str_to_utf8<std::string>;
 
 } // Namespace LSCL
 
-#endif
+#endif // _H_LSCL_GLOBAL

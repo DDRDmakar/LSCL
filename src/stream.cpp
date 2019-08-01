@@ -47,18 +47,17 @@ Stream::Stream(std::istream &input) :
 	in_stream(input),
 	rx_buffer(new char[LSCL_PREFETCH_SIZE]),
 	n_prefetched_bytes_available(0),
-	n_prefetched_bytes_used(0)
+	n_prefetched_bytes_used(0),
+	line(1)
 {
 	setup_rx_buffer();
 }
 
 /**
  * Class destructor
- * Frees allocated memory
  */
 Stream::~Stream(void)
 {
-	delete[] rx_buffer;
 }
 
 /**
@@ -73,7 +72,7 @@ inline bool Stream::setup_rx_buffer(void) const
 		std::streambuf *sb = in_stream.rdbuf();
 		n_prefetched_bytes_available = static_cast<std::size_t>(
 			sb->sgetn(
-				reinterpret_cast<char*>(rx_buffer),
+				reinterpret_cast<char*>(rx_buffer.get()),
 				LSCL_PREFETCH_SIZE
 			)
 		);
@@ -92,6 +91,7 @@ inline bool Stream::setup_rx_buffer(void) const
 char Stream::pop_next_char(void) const
 {
 	if (!setup_rx_buffer()) return '\0';
+	if (rx_buffer[n_prefetched_bytes_used] == '\n') ++line;
 	return rx_buffer[n_prefetched_bytes_used++];
 }
 
@@ -101,6 +101,7 @@ char Stream::pop_next_char(void) const
 char Stream::peek_next_char(void) const
 {
 	if (!setup_rx_buffer()) return '\0';
+	if (rx_buffer[n_prefetched_bytes_used] == '\n') ++line;
 	return rx_buffer[n_prefetched_bytes_used];
 }
 
@@ -110,6 +111,19 @@ char Stream::peek_next_char(void) const
 void Stream::eat_next_char(void) const
 {
 	if (setup_rx_buffer()) ++n_prefetched_bytes_used;
+}
+
+/**
+ * Checks if character stream is still available
+ */
+Stream::operator bool() const
+{
+	return in_stream.good() || (peek_next_char() != '\0' && peek_next_char() != EOF);
+}
+
+unsigned int Stream::get_line(void) const
+{
+	return line;
 }
 
 } // Namespace Nodebuilder

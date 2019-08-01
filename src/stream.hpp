@@ -4,6 +4,7 @@
 
 #include <string>
 #include <sstream>
+#include <memory>
 
 using namespace std;
 
@@ -37,15 +38,19 @@ public:
 	void eat_next_char(void)  const;
 	
 	bool skip_spaces(void) const;
+	unsigned int get_line(void) const;
+	
+	operator bool() const;
 	
 protected:
 	
 private:
 	std::istream &in_stream;
-	char *rx_buffer;
+	std::unique_ptr<char[]> rx_buffer;
 	mutable size_t
 		n_prefetched_bytes_available,
 		n_prefetched_bytes_used;
+	mutable unsigned int line; // Line counter
 };
 
 } // Namespace Nodebuilder

@@ -38,6 +38,22 @@ namespace LSCL
 			const std::string what() { return "LSCL nodebuilder exception [line " + std::to_string(line) + "]: " + description; }
 		};
 		
+		// Access exception
+		class Exception_access : public Exception
+		{
+		public:
+			Exception_access(const std::string &desc = "") : Exception(desc) {}
+			const std::string what() { return "LSCL access exception: " + description; }
+		};
+		
+		// Modify exception
+		class Exception_modify: public Exception
+		{
+		public:
+			Exception_modify(const std::string &desc = "") : Exception(desc) {}
+			const std::string what() { return "LSCL modify exception: " + description; }
+		};
+		
 	} // Namespace Exception
 } // Namespace LSCL
 

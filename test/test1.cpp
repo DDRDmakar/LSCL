@@ -94,14 +94,29 @@ TEST_CASE( "Stream", "[nodebuilder]" )
 TEST_CASE( "Scalar node properties", "[nodes]" )
 {
 	LSCL::Node_internal *root = new LSCL::Node_internal(LSCL::NODETYPE_NONE);
-	REQUIRE(root->get_type() == LSCL::NODETYPE_NONE);
+	REQUIRE(root->type == LSCL::NODETYPE_NONE);
 	REQUIRE(root->is(LSCL::NODETYPE_NONE));
-	REQUIRE(root->get_parent() == nullptr);
+	REQUIRE(root->parent == nullptr);
 	LSCL::Node_internal scalar(LSCL::NODETYPE_SCALAR, root);
-	REQUIRE(scalar.get_parent() == root);
-	REQUIRE(scalar.get_type() == LSCL::NODETYPE_SCALAR);
+	REQUIRE(scalar.parent == root);
+	REQUIRE(scalar.type == LSCL::NODETYPE_SCALAR);
 	REQUIRE(scalar.is(LSCL::NODETYPE_SCALAR));
 	LSCL::Node_internal *scalar_ptr = &scalar;
-	REQUIRE(scalar_ptr->get_type() == LSCL::NODETYPE_SCALAR);
+	REQUIRE(scalar_ptr->type == LSCL::NODETYPE_SCALAR);
 	REQUIRE(scalar_ptr->is(LSCL::NODETYPE_SCALAR));
+}
+
+TEST_CASE( "[] access properties", "[nodes]" )
+{
+	/*
+	LSCL::Node_internal n1(nullptr, "value_1");
+	LSCL::Node_internal list(LSCL::NODETYPE_LIST);
+	for (int i = 0; i < 10; ++i)
+	{
+		list.insert("num_" + std::to_string(i));
+	}
+	list.insert(n1, 3);
+	
+	REQUIRE(n1.size() == 0);
+	*/
 }

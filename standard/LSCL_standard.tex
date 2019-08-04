@@ -225,8 +225,12 @@ kushaet kompot">
 \end{lstlisting}
 
 \subsection{Tags}
-In LSCL, untagged nodes are given an universal type and stored before usage. To speed up your program and debug data type errors while parsing, you can use explicit typing, defining data type in the node. \\
-Tags are present in LSCL standard, but they should not be supported by any library. So, if you do data transfers using LSCL between programs or between machines, it'd be better not to use tags. \\
+In LSCL some data types could be represented in different ways to improve readability of config. \\
+In addition, some forms of data representation could be detected while processing file and pre-decoded to speed-up config reading process. For example, if you set value 123 without any quotes, it will be treated as integer by default. \\
+If user's code reads scalar value with specific type once, it remembers decoded value and next time returns it to you quicker, without repeated decoding. \\
+It is not necessary for all LSCL-processing libraries to use type-specific value storing, but it is recommended to do so.
+%untagged nodes are given an universal type and stored before usage. To speed up your program and debug data type errors while parsing, you can use explicit typing, defining data type in the node. \\
+%Tags are present in LSCL standard, but they should not be supported by any library. So, if you do data transfers using LSCL between programs or between machines, it'd be better not to use tags. \\
 \begin{lstlisting}[caption = integers]
 decimal: 12345
 binary: 0b1100
@@ -251,41 +255,44 @@ booleans: [ true, false ]
 string: '012345'
 \end{lstlisting}
 
-Explicit typing is denoted with a tag using exclamation point ``!''. Each library supports it's own list of tags! \\
-For example, basically in C++ library ``LSCL'', such tags are available:
-\begin{itemize}
-	\item !umap -- unordered map
-	\item !omap -- ordered map
-	\item !uset -- unordered set
-	\item !oset -- ordered set
-	\item !llist -- linked list
-	\item !vector -- vector
-	\item !.....blah blah blah too complex
-	\item !binary
-	\item !timestamp
-\end{itemize}
+%Explicit typing is denoted with a tag using exclamation point ``!''. Each library supports it's own list of tags! \\
+%For example, basically in C++ library ``LSCL'', such tags are available:
+%\begin{itemize}
+%	\item !umap -- unordered map
+%	\item !omap -- ordered map
+%	\item !uset -- unordered set
+%	\item !oset -- ordered set
+%	\item !llist -- linked list
+%	\item !vector -- vector
+%	\item !.....blah blah blah too complex
+%	\item !binary
+%	\item !timestamp
+%\end{itemize}
 
-\begin{lstlisting}[caption = various explicit tags]
-// Binary object
-picture: !binary 
-'\xA0;\xA0;\x00;\xFF;\x00;
- \x00;\x88;\x00;\x00;\x00'
+%\begin{lstlisting}[caption = various explicit tags]
+%// Binary object
+%picture: !binary 
+%'\xA0;\xA0;\x00;\xFF;\x00;
+% \x00;\x88;\x00;\x00;\x00'
 
-// Unordered set
-some_node_name: !uset
-[
-	oc
-	toc
-	perevertoc
-]
+%// Unordered set
+%some_node_name: !uset
+%[
+%	oc
+%	toc
+%	perevertoc
+%]
 
-// Ordered map
-some_node_name: !omap
-{
-	oc: toc
-	babushka: zdorova
-}
-\end{lstlisting}
+%// Ordered map
+%some_node_name: !omap
+%{
+%	oc: toc
+%	babushka: zdorova
+%}
+%\end{lstlisting}
+
+\section{Processing}
+LSCL can be represented both in text form and as tree of LSCL-nodes. 
 
 
 

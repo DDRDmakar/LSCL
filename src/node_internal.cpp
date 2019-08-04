@@ -16,6 +16,8 @@
  * 
  */
 
+#include <type_traits>
+
 #include "node_internal.hpp"
 #include "exception.hpp"
 
@@ -41,7 +43,11 @@ namespace LSCL
 		const NODETYPE nt, 
 		Node_internal *parent
 	)
-	: parent(parent), type(nt)
+	: 
+		//value_prepaired_type_(SCALARTYPE_NONE),
+		//value_prepaired_(nullptr), 
+		parent(parent), 
+		type(nt)
 	{
 	}
 	
@@ -50,7 +56,12 @@ namespace LSCL
 		Node_internal *parent, 
 		const std::string &value
 	)
-	: parent(parent), type(NODETYPE_SCALAR), value(value)
+	: 
+		//value_prepaired_type_(SCALARTYPE_NONE),
+		//value_prepaired_(nullptr),
+		parent(parent), 
+		type(NODETYPE_SCALAR), 
+		value(value)
 	{
 	}
 	
@@ -59,7 +70,12 @@ namespace LSCL
 		Node_internal *parent, 
 		const std::vector<Node_internal> &value
 	)
-	: parent(parent), type(NODETYPE_LIST), values_list(value)
+	: 
+		//value_prepaired_type_(SCALARTYPE_NONE),
+		//value_prepaired_(nullptr),
+		parent(parent), 
+		type(NODETYPE_LIST), 
+		values_list(value)
 	{
 	}
 	
@@ -68,7 +84,12 @@ namespace LSCL
 		Node_internal *parent, 
 		const std::map<std::string, Node_internal> &value
 	)
-	: parent(parent), type(NODETYPE_MAP), values_map(value)
+	: 
+		//value_prepaired_type_(SCALARTYPE_NONE),
+		//value_prepaired_(nullptr),
+		parent(parent), 
+		type(NODETYPE_MAP), 
+		values_map(value)
 	{
 	}
 	
@@ -93,7 +114,53 @@ namespace LSCL
 	
 	//=====[ S C A L A R ]=====//
 	
-	
+	template <typename T>
+	T Node_internal::get(void) const
+	{
+		T v;
+		if (type == NODETYPE_SCALAR)
+		{
+			if (
+				std::is_same<T, uint8_t>::value        ||
+				std::is_same<T, uint16_t>::value       ||
+				std::is_same<T, uint32_t>::value
+			)
+			{
+				v = (T)std::stoul(value);
+			}
+			
+			else if (
+				std::is_same<T, int8_t>::value  ||
+				std::is_same<T, int16_t>::value ||
+				std::is_same<T, int32_t>::value
+			)
+			{
+				v = (T)std::stol(value);
+			}
+			
+			else if (std::is_same<T, uint64_t>::value)
+			{
+				v = (T)std::stoull(value);
+			}
+			else if (std::is_same<T, int64_t>::value)
+			{
+				v = (T)std::stoll(value);
+			}
+			else throw LSCL::Exception::Exception_access("Getting scalar value of unknown type <T>");
+			
+		}
+		else
+		{
+			switch (type)
+			{
+				case NODETYPE_LIST: { throw LSCL::Exception::Exception_access("Calling get<> method on LSCL list node"); break; }
+				case NODETYPE_MAP: { throw LSCL::Exception::Exception_access("Calling get<> method on LSCL map node"); break; }
+				default: { throw LSCL::Exception::Exception_access("Calling get<> method on LSCL non-scalar node"); break; }
+			}
+		}
+		
+		return v;
+	}
 	
 	//=====[ L I S T ]=====//
 	/*

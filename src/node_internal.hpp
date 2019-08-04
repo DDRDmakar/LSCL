@@ -16,8 +16,8 @@
  * 
  */
 
-#ifndef _H_LSCL_NODE
-#define _H_LSCL_NODE
+#ifndef _H_LSCL_NODE_INTERNAL
+#define _H_LSCL_NODE_INTERNAL
 
 #include <string>
 #include <memory>
@@ -35,6 +35,52 @@ namespace LSCL
 		NODETYPE_MAP,
 		NODETYPE_LIST,
 		NODETYPE_SCALAR
+	};
+	
+	/*
+	 * CHAR_BIT    :   8
+	 * CHAR_MAX    :   127
+	 * CHAR_MIN    :   -128
+	 * INT_MAX     :   2147483647
+	 * INT_MIN     :   -2147483648
+	 * LONG_MAX    :   9223372036854775807
+	 * LONG_MIN    :   -9223372036854775808
+	 * SCHAR_MAX   :   127
+	 * SCHAR_MIN   :   -128
+	 * SHRT_MAX    :   32767
+	 * SHRT_MIN    :   -32768
+	 * UCHAR_MAX   :   255
+	 * UINT_MAX    :   4294967295
+	 * ULONG_MAX   :   18446744073709551615
+	 * USHRT_MAX   :   65535
+	 * 
+	 * Storage size for float : 4 
+	 * FLT_MAX      :   3.40282e+38
+	 * FLT_MIN      :   1.17549e-38
+	 * -FLT_MAX     :   -3.40282e+38
+	 * -FLT_MIN     :   -1.17549e-38
+	 * DBL_MAX      :   1.79769e+308
+	 * DBL_MIN      :   2.22507e-308
+	 * -DBL_MAX     :  -1.79769e+308
+	 * Precision value: 6
+	 * 
+	 */
+	
+	enum SCALARTYPE
+	{
+		SCALARTYPE_NONE,
+		SCALARTYPE_LONGNUMBER,
+		SCALARTYPE_INT8,
+		SCALARTYPE_INT16,
+		SCALARTYPE_INT32,
+		SCALARTYPE_INT64,
+		SCALARTYPE_UINT8,
+		SCALARTYPE_UINT16,
+		SCALARTYPE_UINT32,
+		SCALARTYPE_UINT64,
+		SCALARTYPE_FLOAT,
+		SCALARTYPE_DOUBLE,
+		SCALARTYPE_LONG_DOUBLE
 	};
 	
 	// Declare builder class here to make it a friend of Node_internal base class
@@ -61,6 +107,8 @@ namespace LSCL
 	class Node_internal
 	{
 	private:
+		//mutable SCALARTYPE value_prepaired_type_;
+		//mutable void *value_prepaired_;
 		
 	protected:
 		
@@ -98,6 +146,10 @@ namespace LSCL
 		
 		//virtual NODETYPE get_type(void) const;
 		bool is(NODETYPE nodetype) const;
+		
+		template <typename T>
+		T get(void) const;
+		
 		//const Node_internal* get_parent(void) const;
 		
 		//Node_internal& operator[](const std::string &key);
@@ -113,4 +165,4 @@ namespace LSCL
 	
 } // Namespace LSCL
 
-#endif // _H_LSCL_NODE
+#endif // _H_LSCL_NODE_INTERNAL

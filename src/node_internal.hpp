@@ -25,6 +25,7 @@
 #include <map>
 
 #include "nodebuilder.hpp"
+#include "exception.hpp"
 
 namespace LSCL
 {
@@ -162,6 +163,71 @@ namespace LSCL
 		
 		size_t size(void) const;
 	};
+	
+	
+	//=====[ S C A L A R ]=====//
+	
+	template <typename T>
+	T Node_internal::get(void) const
+	{
+		T v;
+		if (type == NODETYPE_SCALAR)
+		{
+			if (
+				std::is_same<T, uint8_t>::value        ||
+				std::is_same<T, uint16_t>::value       ||
+				std::is_same<T, uint32_t>::value       ||
+				std::is_same<T, unsigned char>::value  ||
+				std::is_same<T, unsigned short>::value ||
+				std::is_same<T, unsigned int>::value   ||
+				std::is_same<T, unsigned long>::value
+			)
+			{
+				v = (T)std::stoul(value);
+			}
+			
+			else if (
+				std::is_same<T, int8_t>::value  ||
+				std::is_same<T, int16_t>::value ||
+				std::is_same<T, int32_t>::value ||
+				std::is_same<T, char>::value    ||
+				std::is_same<T, short>::value   ||
+				std::is_same<T, int>::value     ||
+				std::is_same<T, long>::value
+			)
+			{
+				v = (T)std::stol(value);
+			}
+			
+			else if (
+				std::is_same<T, uint64_t>::value ||
+				std::is_same<T, unsigned long long int>::value
+			)
+			{
+				v = (T)std::stoull(value);
+			}
+			else if (
+				std::is_same<T, int64_t>::value ||
+				std::is_same<T, long long int>::value
+			)
+			{
+				v = (T)std::stoll(value);
+			}
+			else throw LSCL::Exception::Exception_access("Getting scalar value of unknown type <T>");
+			
+		}
+		else
+		{
+			switch (type)
+			{
+				case NODETYPE_LIST: { throw LSCL::Exception::Exception_access("Calling get<> method on LSCL list node"); break; }
+				case NODETYPE_MAP: { throw LSCL::Exception::Exception_access("Calling get<> method on LSCL map node"); break; }
+				default: { throw LSCL::Exception::Exception_access("Calling get<> method on LSCL non-scalar node"); break; }
+			}
+		}
+		
+		return v;
+	}
 	
 } // Namespace LSCL
 

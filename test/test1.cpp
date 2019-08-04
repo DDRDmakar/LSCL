@@ -7,6 +7,7 @@
 #include <string>
 #include <wchar.h>
 #include <sstream>
+#include <limits.h>
 
 #include <lscl/lscl.hpp>
 
@@ -119,4 +120,60 @@ TEST_CASE( "[] access properties", "[nodes]" )
 	
 	REQUIRE(n1.size() == 0);
 	*/
+}
+
+/*
+CHAR_BIT    Number of bits in a char object (byte)          8 or greater*
+SCHAR_MIN   Minimum value for an object of type signed char -127 (-27+1) or less*
+SCHAR_MAX   Maximum value for an object of type signed char 127 (27-1) or greater*
+UCHAR_MAX   Maximum value for an object of type unsigned char    255 (28-1) or greater*
+CHAR_MIN    Minimum value for an object of type char             either SCHAR_MIN or 0
+CHAR_MAX    Maximum value for an object of type char             either SCHAR_MAX or UCHAR_MAX
+MB_LEN_MAX  Maximum number of bytes in a multibyte character, for any locale    1 or greater*
+SHRT_MIN    Minimum value for an object of type short int     -32767 (-215+1) or less*
+SHRT_MAX    Maximum value for an object of type short int     32767 (215-1) or greater*
+USHRT_MAX   Maximum value for an object of type unsigned short int   65535 (216-1) or greater*
+INT_MIN     Minimum value for an object of type int                  -32767 (-215+1) or less*
+INT_MAX     Maximum value for an object of type int                  32767 (215-1) or greater*
+UINT_MAX    Maximum value for an object of type unsigned int         65535 (216-1) or greater*
+LONG_MIN    Minimum value for an object of type long int             -2147483647 (-231+1) or less*
+LONG_MAX    Maximum value for an object of type long int             2147483647 (231-1) or greater*
+ULONG_MAX   Maximum value for an object of type unsigned long int    4294967295 (232-1) or greater*
+LLONG_MIN   Minimum value for an object of type long long int        -9223372036854775807 (-263+1) or less*
+LLONG_MAX   Maximum value for an object of type long long int        9223372036854775807 (263-1) or greater*
+ULLONG_MAX  Maximum value for an object of type unsigned long long int    18446744073709551615 (264-1) or greater*
+ */
+void node_internal_get(int64_t num)
+{
+	LSCL::Node_internal n1(nullptr, std::to_string(num));
+	
+	if (num <= UCHAR_MAX) REQUIRE(n1.get<uint8_t>()  == num);
+	if (num <= USHRT_MAX) REQUIRE(n1.get<uint16_t>() == num);
+	if (num <= UINT_MAX)  REQUIRE(n1.get<uint32_t>() == num);
+	if (num <= ULLONG_MAX) REQUIRE(n1.get<uint64_t>() == num);
+	
+	if (num <= CHAR_MAX && num >= CHAR_MIN) REQUIRE(n1.get<int8_t>()  == num);
+	if (num <= SHRT_MAX && num >= SHRT_MIN) REQUIRE(n1.get<int16_t>() == num);
+	if (num <= INT_MAX && num >= INT_MIN)   REQUIRE(n1.get<int32_t>() == num);
+	if (num <= LLONG_MAX && num >= LLONG_MIN) REQUIRE(n1.get<int64_t>() == num);
+	
+	if (num <= CHAR_MAX && num >= CHAR_MIN) REQUIRE(n1.get<char>()      == num);
+	if (num <= SHRT_MAX && num >= SHRT_MIN) REQUIRE(n1.get<short>()     == num);
+	if (num <= INT_MAX && num >= INT_MIN)   REQUIRE(n1.get<int>()       == num);
+	if (num <= LONG_MAX && num >= LONG_MIN)   REQUIRE(n1.get<long>()      == num);
+	if (num <= LLONG_MAX && num >= LLONG_MIN) REQUIRE(n1.get<long long>() == num);
+	
+	if (num <= UCHAR_MAX) REQUIRE(n1.get<unsigned char>()      == num);
+	if (num <= USHRT_MAX) REQUIRE(n1.get<unsigned short>()     == num);
+	if (num <= UINT_MAX)  REQUIRE(n1.get<unsigned int>()       == num);
+	if (num <= ULONG_MAX)  REQUIRE(n1.get<unsigned long>()      == num);
+	if (num <= ULLONG_MAX) REQUIRE(n1.get<unsigned long long>() == num);
+}
+
+TEST_CASE( "get<> method", "[nodes]" )
+{
+	for (long long int i = 10; i <= LLONG_MAX && i > 0; i += i/2)
+	{
+		node_internal_get(i);
+	}
 }

@@ -103,6 +103,8 @@ namespace LSCL
 	 * 
 	 * List class - list of values, which should be referenced by index
 	 * or iterated through.
+	 * 
+	 * Map class - map of values, referenced by key
 	 */
 	
 	class Node_internal
@@ -165,14 +167,18 @@ namespace LSCL
 	};
 	
 	
+	
+	
 	//=====[ S C A L A R ]=====//
 	
+	// Numbers
 	template <typename T>
 	T Node_internal::get(void) const
 	{
 		T v;
 		if (type == NODETYPE_SCALAR)
 		{
+			// unsigned 1, 2, 4 bytes integers
 			if (
 				std::is_same<T, uint8_t>::value        ||
 				std::is_same<T, uint16_t>::value       ||
@@ -186,6 +192,7 @@ namespace LSCL
 				v = (T)std::stoul(value);
 			}
 			
+			// signed 1, 2, 4 bytes integers
 			else if (
 				std::is_same<T, int8_t>::value  ||
 				std::is_same<T, int16_t>::value ||
@@ -199,6 +206,7 @@ namespace LSCL
 				v = (T)std::stol(value);
 			}
 			
+			// unsigned 8-byte integers
 			else if (
 				std::is_same<T, uint64_t>::value ||
 				std::is_same<T, unsigned long long int>::value
@@ -206,6 +214,8 @@ namespace LSCL
 			{
 				v = (T)std::stoull(value);
 			}
+			
+			// signed 8-byte integers
 			else if (
 				std::is_same<T, int64_t>::value ||
 				std::is_same<T, long long int>::value
@@ -213,8 +223,16 @@ namespace LSCL
 			{
 				v = (T)std::stoll(value);
 			}
-			else throw LSCL::Exception::Exception_access("Getting scalar value of unknown type <T>");
 			
+			// float
+			else if (std::is_same<T, float>::value) v = (T)std::stof(value);
+			// double
+			else if (std::is_same<T, double>::value) v = (T)std::stod(value);
+			// long double
+			else if (std::is_same<T, long double>::value) v = (T)std::stold(value);
+			
+			// EXCEPTION
+			else throw LSCL::Exception::Exception_access("Getting scalar value of unknown type <T>");
 		}
 		else
 		{

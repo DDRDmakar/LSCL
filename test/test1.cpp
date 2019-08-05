@@ -143,37 +143,48 @@ LLONG_MIN   Minimum value for an object of type long long int        -9223372036
 LLONG_MAX   Maximum value for an object of type long long int        9223372036854775807 (263-1) or greater*
 ULLONG_MAX  Maximum value for an object of type unsigned long long int    18446744073709551615 (264-1) or greater*
  */
-void node_internal_get(int64_t num)
+inline void node_internal_get_int(int64_t num)
 {
 	LSCL::Node_internal n1(nullptr, std::to_string(num));
 	
-	if (num <= UCHAR_MAX) REQUIRE(n1.get<uint8_t>()  == num);
-	if (num <= USHRT_MAX) REQUIRE(n1.get<uint16_t>() == num);
-	if (num <= UINT_MAX)  REQUIRE(n1.get<uint32_t>() == num);
-	if (num <= ULLONG_MAX) REQUIRE(n1.get<uint64_t>() == num);
+	if (num <= UCHAR_MAX  && num >= 0) REQUIRE(n1.get<uint8_t>()  == num);
+	if (num <= USHRT_MAX  && num >= 0) REQUIRE(n1.get<uint16_t>() == num);
+	if (num <= UINT_MAX   && num >= 0) REQUIRE(n1.get<uint32_t>() == num);
+	if (num <= ULLONG_MAX && num >= 0) REQUIRE(n1.get<uint64_t>() == num);
 	
-	if (num <= CHAR_MAX && num >= CHAR_MIN) REQUIRE(n1.get<int8_t>()  == num);
-	if (num <= SHRT_MAX && num >= SHRT_MIN) REQUIRE(n1.get<int16_t>() == num);
-	if (num <= INT_MAX && num >= INT_MIN)   REQUIRE(n1.get<int32_t>() == num);
+	if (num <= CHAR_MAX  && num >= CHAR_MIN)  REQUIRE(n1.get<int8_t>()  == num);
+	if (num <= SHRT_MAX  && num >= SHRT_MIN)  REQUIRE(n1.get<int16_t>() == num);
+	if (num <= INT_MAX   && num >= INT_MIN)   REQUIRE(n1.get<int32_t>() == num);
 	if (num <= LLONG_MAX && num >= LLONG_MIN) REQUIRE(n1.get<int64_t>() == num);
 	
-	if (num <= CHAR_MAX && num >= CHAR_MIN) REQUIRE(n1.get<char>()      == num);
-	if (num <= SHRT_MAX && num >= SHRT_MIN) REQUIRE(n1.get<short>()     == num);
-	if (num <= INT_MAX && num >= INT_MIN)   REQUIRE(n1.get<int>()       == num);
-	if (num <= LONG_MAX && num >= LONG_MIN)   REQUIRE(n1.get<long>()      == num);
+	if (num <= CHAR_MAX  && num >= CHAR_MIN)  REQUIRE(n1.get<char>()      == num);
+	if (num <= SHRT_MAX  && num >= SHRT_MIN)  REQUIRE(n1.get<short>()     == num);
+	if (num <= INT_MAX   && num >= INT_MIN)   REQUIRE(n1.get<int>()       == num);
+	if (num <= LONG_MAX  && num >= LONG_MIN)  REQUIRE(n1.get<long>()      == num);
 	if (num <= LLONG_MAX && num >= LLONG_MIN) REQUIRE(n1.get<long long>() == num);
 	
-	if (num <= UCHAR_MAX) REQUIRE(n1.get<unsigned char>()      == num);
-	if (num <= USHRT_MAX) REQUIRE(n1.get<unsigned short>()     == num);
-	if (num <= UINT_MAX)  REQUIRE(n1.get<unsigned int>()       == num);
-	if (num <= ULONG_MAX)  REQUIRE(n1.get<unsigned long>()      == num);
-	if (num <= ULLONG_MAX) REQUIRE(n1.get<unsigned long long>() == num);
+	if (num <= UCHAR_MAX  && num >= 0) REQUIRE(n1.get<unsigned char>()      == num);
+	if (num <= USHRT_MAX  && num >= 0) REQUIRE(n1.get<unsigned short>()     == num);
+	if (num <= UINT_MAX   && num >= 0) REQUIRE(n1.get<unsigned int>()       == num);
+	if (num <= ULONG_MAX  && num >= 0) REQUIRE(n1.get<unsigned long>()      == num);
+	if (num <= ULLONG_MAX && num >= 0) REQUIRE(n1.get<unsigned long long>() == num);
 }
 
 TEST_CASE( "get<> method", "[nodes]" )
 {
 	for (long long int i = 10; i <= LLONG_MAX && i > 0; i += i/2)
 	{
-		node_internal_get(i);
+		node_internal_get_int(i);
+		node_internal_get_int(-i);
 	}
+	
+	LSCL::Node_internal n(nullptr, "0.0");
+	REQUIRE(n.get<float>()       == (float)      0.0);
+	REQUIRE(n.get<double>()      == (double)     0.0);
+	REQUIRE(n.get<long double>() == (long double)0.0);
+	
+	n.value = "1.457e-30";
+	REQUIRE(n.get<float>()       == (float)      1.457e-30);
+	REQUIRE(n.get<double>()      == (double)     1.457e-30);
+	REQUIRE(n.get<long double>() -  (long double)1.457e-30 < (long double)1e-35);
 }

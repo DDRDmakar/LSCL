@@ -264,6 +264,46 @@ constexpr auto wchar_ptr_to_utf8_vector     = &uint32_str_to_utf8<std::vector<ui
 constexpr auto wchar_ptr_to_string          = &uint32_str_to_utf8<std::string>;
 
 
+
+// Replaces one sequensce of symbols with another in given string
+template <class T>       // std::string or std::wstring
+void replace_in_text(
+	T &current_line,
+	const T &part,
+	const T &n_part
+)
+{
+	// Exit if part is empty or n_part includes part (risc of recursion)
+	if (part.empty() || (n_part.find(part) != T::npos)) return;
+	
+	size_t position = current_line.find(part);
+	while (position != T::npos)
+	{
+		current_line.replace(position, part.length(), n_part); // Replace part with n_part
+		position = current_line.find(part); // find another sequence "part"
+	}
+}
+
+// Replaces one sequens of symbols with another in given string (once)
+template <class T>
+void replace_in_text_once(
+	T &current_line, 
+	const T &part, 
+	const T &n_part
+)
+{
+	// Return if part is empty or part and n_part are equal
+	if (part.empty() || part == n_part) return;
+	
+	size_t position = current_line.find(part);
+	while (position != T::npos)
+	{
+		current_line.replace(position, part.length(), n_part); // Заменяем её на n_part
+		position = current_line.find(part, position + n_part.length()); // Находим следующее место, где встречается эта последовательность
+	}
+}
+
+
 } // Namespace LSCL
 
 #endif // _H_LSCL_GLOBAL

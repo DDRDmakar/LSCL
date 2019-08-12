@@ -188,3 +188,9 @@ TEST_CASE( "get<> method", "[nodes]" )
 	REQUIRE(n.get<double>()      == (double)     1.457e-30);
 	REQUIRE(n.get<long double>() -  (long double)1.457e-30 < (long double)1e-35);
 }
+
+TEST_CASE( "Escape sequences", "[nodebuilder]" )
+{
+	std::string a = "abcdef";
+	
+}

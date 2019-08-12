@@ -51,12 +51,14 @@ namespace LSCL
 			
 			enum NODEWAY
 			{
-				MAP, LIST, SCALAR, KEY, COMMA
+				NODEWAY_MAP, NODEWAY_LIST, NODEWAY_SCALAR, NODEWAY_KEY, NODEWAY_COMMA
 			};
+			
 			
 			Stream ss;                     // Characters stream to read from
 			std::stack<NODEWAY> nodestack; // Stack of the hierarchy we are digging into
 			
+			std::string process_scalar(void); // Processing of value in single quotes (without escape-sequences)
 		};
 		
 	} // Namespace Nodebuilder

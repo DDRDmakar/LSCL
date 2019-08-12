@@ -309,8 +309,39 @@ string: '012345'
 %\end{lstlisting}
 
 \section{Processing}
-LSCL can be represented both in text form and as tree of LSCL-nodes. 
+LSCL can be represented both in text form and as tree of LSCL-nodes.  \\
+It is designed to be stored in text files, so it supports including nodes from external file into any place of your tree. Processing starts from one ``main'' file, which will represent root of the tree. 
 
+\subsection{Commas}
+Elements in list structure should be separated by commas. The syntax is: 
+\begin{lstlisting}[caption = Commas in list (1)]
+[ node_1, node_2, node_3 ]
+\end{lstlisting}
+But to prevent errors appear in your config while editing it, it's also made possible to leave commas in the beginning or in the end  of list. The following syntax is legal:
+\begin{lstlisting}[caption = Commas in list (2)]
+list 1: [ node_1, node_2, node_3 ]
+list 2: [ node_1, node_2, node_3, ]
+list 3: [ , node_1, node_2, node_3 ]
+list 4: [ , node_1, node_2, node_3, ]
+\end{lstlisting}
+
+When elements of list are separated by newline character, it's not necessary to write comma between them. Two next notations are absolutely equal: \\
+\begin{minipage}{0.45\textwidth}
+\begin{lstlisting}[caption = Commas in list (3)]
+list 1:
+[
+	node_1,
+	node_2,
+	node_3
+]
+list 2:
+[
+	node_1
+	node_2
+	node_3
+]
+\end{lstlisting}
+\end{minipage}
 
 
 \end{document}

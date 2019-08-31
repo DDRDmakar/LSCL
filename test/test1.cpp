@@ -10,6 +10,7 @@
 #include <limits.h>
 
 #include <lscl/lscl.hpp>
+#include "../src/test.hpp"
 
 using namespace std;
 
@@ -191,6 +192,5 @@ TEST_CASE( "get<> method", "[nodes]" )
 
 TEST_CASE( "Escape sequences", "[nodebuilder]" )
 {
-	std::string a = "abcdef";
-	
+	REQUIRE(LSCL::test_builder() == true);
 }

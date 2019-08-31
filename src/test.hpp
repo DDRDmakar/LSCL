@@ -16,20 +16,15 @@
  * 
  */
 
-#ifndef _H_LSCL
-#define _H_LSCL
 
-#include <string>
-#include <vector>
-#include <unordered_map>
-
-#include "../src/nodebuilder.hpp"
-#include "../src/global.hpp"
+#ifndef _H_LSCL_TEST
+#define _H_LSCL_TEST
 
 namespace LSCL
 {
 	
-
+	bool test_builder(void);
+	
 } // Namespace LSCL
 
-#endif // _H_LSCL
+#endif // _H_LSCL_TEST

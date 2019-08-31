@@ -24,18 +24,18 @@
 #include <vector>
 #include <map>
 
-#include "nodebuilder.hpp"
 #include "exception.hpp"
+#include "global.hpp"
 
 namespace LSCL
 {
 	
 	enum NODETYPE
 	{
-		NODETYPE_NONE,
-		NODETYPE_MAP,
-		NODETYPE_LIST,
-		NODETYPE_SCALAR
+		NODETYPE_NONE   = 0,
+		NODETYPE_MAP    = 1,
+		NODETYPE_LIST   = 2,
+		NODETYPE_SCALAR = 3
 	};
 	
 	/*
@@ -245,6 +245,18 @@ namespace LSCL
 		}
 		
 		return v;
+	}
+	
+	// Strings
+	template <> inline std::string Node_internal::get<std::string>(void) const
+	{
+		return value;
+	}
+	
+	// Wstrings
+	template <> inline std::wstring Node_internal::get<std::wstring>(void) const
+	{
+		return string_to_wstring(value);
 	}
 	
 } // Namespace LSCL

@@ -25,6 +25,9 @@
 
 #include "../lscl/lscl.hpp"
 #include "stream.hpp"
+#include "node_internal.hpp"
+
+#include "test.hpp"
 
 using namespace std;
 
@@ -40,6 +43,28 @@ namespace LSCL
 		*/
 		class Builder
 		{
+			
+		private:
+			
+			// Friend function to perform tests
+			friend bool LSCL::test_builder(void);
+			
+			enum NODEWAY
+			{
+				NODEWAY_MAP    = 1,
+				NODEWAY_LIST   = 2,
+				NODEWAY_SCALAR = 3,
+				NODEWAY_KEY,
+				NODEWAY_COMMA_MAP,
+				NODEWAY_COMMA_LIST
+			};
+			
+			
+			Stream ss_;                     // Characters stream to read from
+			std::stack<NODEWAY> nodestack_; // Stack of the hierarchy we are digging into
+			
+			std::string process_scalar(void); // Processing of scalar value
+			
 		public:
 			
 			explicit Builder(std::istream& input);
@@ -47,18 +72,8 @@ namespace LSCL
 			// If the parser has some valid input to be read
 			// explicit operator bool() const;
 			
-		private:
+			Node_internal root; // Root of node tree
 			
-			enum NODEWAY
-			{
-				NODEWAY_MAP, NODEWAY_LIST, NODEWAY_SCALAR, NODEWAY_KEY, NODEWAY_COMMA
-			};
-			
-			
-			Stream ss;                     // Characters stream to read from
-			std::stack<NODEWAY> nodestack; // Stack of the hierarchy we are digging into
-			
-			std::string process_scalar(void); // Processing of value in single quotes (without escape-sequences)
 		};
 		
 	} // Namespace Nodebuilder

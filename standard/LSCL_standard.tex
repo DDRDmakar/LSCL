@@ -112,7 +112,6 @@ LSCL's block collections use curved brackets for maps and square brackets for li
 ~\\
 \begin{minipage}{0.45\textwidth}
 \begin{lstlisting}[caption = list]
-pesnya:
 [
 	oc
 	toc
@@ -123,7 +122,6 @@ pesnya:
 \hfill
 \begin{minipage}{0.45\textwidth}
 \begin{lstlisting}[caption = map]
-pesnya:
 {
 	babushka: zdorova
 	kushaet: kompot
@@ -134,7 +132,6 @@ pesnya:
 ~\\
 \begin{minipage}{0.45\textwidth}
 \begin{lstlisting}[caption = list of maps]
-pesnya:
 [
 	{ oc1: toc, oc2: toc }
 	{ perevertoc: zavertoc }
@@ -144,7 +141,6 @@ pesnya:
 \hfill
 \begin{minipage}{0.45\textwidth}
 \begin{lstlisting}[caption = map of lists]
-pesnya:
 {
 	oc:  [babushka, zdorova]
 	toc: [kushaet, kompot]
@@ -155,7 +151,6 @@ pesnya:
 ~\\
 \begin{minipage}{0.45\textwidth}
 \begin{lstlisting}[caption = list of lists]
-pesnya:
 [
 	[babushka, zdorova]
 	[kushaet, kompot]
@@ -165,7 +160,6 @@ pesnya:
 \hfill
 \begin{minipage}{0.45\textwidth}
 \begin{lstlisting}[caption = map of maps]
-pesnya:
 {
 	oc:  { oc: toc, oc: toc }
 	toc: { perevertoc: zavertoc }
@@ -179,11 +173,13 @@ To reference an element of list you should use index in rectangular brackets ins
 For example: \texttt{ \Large*("key1".[6]."key3")} \\
 Here in an example of using different links in LSCL.
 \begin{lstlisting}[caption = using links]
-oc:  &mylink { oc1: toc, oc2: toc }
-toc1: *mylink
-toc2: *"mylink"
-toc3: *(oc)
-toc4: *(oc.oc2)
+{
+	oc:  &mylink { oc1: toc, oc2: toc }
+	toc1: *mylink
+	toc2: *"mylink"
+	toc3: *(oc)
+	toc4: *(oc.oc2)
+}
 \end{lstlisting}
 
 \subsection{Scalars}
@@ -268,7 +264,7 @@ not a number: .NaN
 \begin{lstlisting}[caption = miscellaneous]
 null_scalar:     ,
 null_scalar: NULL
-booleans: [ true, false ]
+booleans: [ true, false, t, f, T, F, Yes, No, Y, N, +, - ]
 string: '012345'
 \end{lstlisting}
 
@@ -319,27 +315,31 @@ Elements in list structure should be separated by commas. The syntax is:
 \end{lstlisting}
 But to prevent errors appear in your config while editing it, it's also made possible to leave commas in the beginning or in the end  of list. The following syntax is legal:
 \begin{lstlisting}[caption = Commas in list (2)]
-list 1: [ node_1, node_2, node_3 ]
-list 2: [ node_1, node_2, node_3, ]
-list 3: [ , node_1, node_2, node_3 ]
-list 4: [ , node_1, node_2, node_3, ]
+{
+	list 1: [ node_1, node_2, node_3 ]
+	list 2: [ node_1, node_2, node_3, ]
+	list 3: [ , node_1, node_2, node_3 ]
+	list 4: [ , node_1, node_2, node_3, ]
+}
 \end{lstlisting}
 
 When elements of list are separated by newline character, it's not necessary to write comma between them. Two next notations are absolutely equal: \\
 \begin{minipage}{0.45\textwidth}
 \begin{lstlisting}[caption = Commas in list (3)]
-list 1:
-[
-	node_1,
-	node_2,
-	node_3
-]
-list 2:
-[
-	node_1
-	node_2
-	node_3
-]
+{
+	list 1:
+	[
+		node_1,
+		node_2,
+		node_3
+	]
+	list 2:
+	[
+		node_1
+		node_2
+		node_3
+	]
+}
 \end{lstlisting}
 \end{minipage}
 

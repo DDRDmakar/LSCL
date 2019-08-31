@@ -8,3 +8,5 @@ It is designed for local usage as program config. It supports such features as:
 - links  
 - including files  
 - appending data to lists  
+  
+For more info look STANDARD_not_completed.pdf  

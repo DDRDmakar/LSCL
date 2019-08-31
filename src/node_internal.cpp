@@ -98,7 +98,6 @@ namespace LSCL
 	
 	//=====[ N O D E ]=====//
 	
-	
 	size_t Node_internal::size(void) const
 	{
 		switch (type)

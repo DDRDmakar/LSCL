@@ -62,12 +62,13 @@ namespace LSCL
 			
 			Stream ss_;                     // Characters stream to read from
 			std::stack<NODEWAY> nodestack_; // Stack of the hierarchy we are digging into
+			std::string filename_;          // Name of parsed file (or empty if we parse string)
 			
 			std::string process_scalar(void); // Processing of scalar value
 			
 		public:
 			
-			explicit Builder(std::istream& input);
+			explicit Builder(std::istream& input, const std::string &filename = "");
 			
 			// If the parser has some valid input to be read
 			// explicit operator bool() const;

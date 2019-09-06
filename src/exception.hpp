@@ -32,11 +32,10 @@ namespace LSCL
 			
 		protected:
 			const std::string description;
-			unsigned int line; // Line counter value
 		public:
 			
 			// Constructor
-			Exception(const std::string &desc = "", const unsigned int l = 0) : description(desc), line(l) {}
+			Exception(const std::string &desc = "") : description(desc) {}
 			Exception(const Exception&) = default;
 			
 			// The destructor is not allowed to throw exceptions
@@ -49,10 +48,21 @@ namespace LSCL
 		// Nodebuilder exception
 		class Exception_nodebuilder : public Exception
 		{
+		protected:
+			std::string filename;
+			unsigned int line; // Line counter value
 		public:
-			Exception_nodebuilder(const std::string &desc = "", const unsigned int l = 0) : Exception(desc, l) {}
+			Exception_nodebuilder(
+				const std::string &desc = "", 
+				const std::string &f = "", 
+				const unsigned int l = 0
+			) : 
+				Exception(desc),
+				filename(f),
+				line(l)
+			{}
 			// virtual ~Config_exception() throw() {}
-			const std::string what() { return "LSCL nodebuilder exception [line " + std::to_string(line) + "]: " + description; }
+			const std::string what() { return "LSCL nodebuilder exception [file " + filename + "] [line " + std::to_string(line) + "]: " + description; }
 		};
 		
 		// Access exception

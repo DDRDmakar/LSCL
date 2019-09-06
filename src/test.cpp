@@ -35,6 +35,7 @@ namespace LSCL
 				std::string s = "[abcdefg]";
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root.values_list.size() != 1) return false;
 				std::string s2 = builder.root.values_list[0].get<std::string>();
 				if (strcmp(s2.c_str(), "abcdefg") != 0) return false;
 			}
@@ -42,17 +43,81 @@ namespace LSCL
 				std::string s = "{key: val}";
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root.values_map.size() != 1) return false;
 				std::string s2 = builder.root.values_map.find("key")->second.get<std::string>();
 				if (strcmp(s2.c_str(), "val") != 0) return false;
 			}
+			
+			{
+				std::string s = "[abcdefg, xyz]";
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root.values_list.size() != 2) return false;
+				std::string s2 = builder.root.values_list[0].get<std::string>();
+				if (strcmp(s2.c_str(), "abcdefg") != 0) return false;
+				s2 = builder.root.values_list[1].get<std::string>();
+				if (strcmp(s2.c_str(), "xyz") != 0) return false;
+			}
+			{
+				std::string s = "{key: val, key2: val2}";
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root.values_map.size() != 2) return false;
+				std::string s2 = builder.root.values_map.find("key")->second.get<std::string>();
+				if (strcmp(s2.c_str(), "val") != 0) return false;
+				s2 = builder.root.values_map.find("key2")->second.get<std::string>();
+				if (strcmp(s2.c_str(), "val2") != 0) return false;
+			}
+			{
+				std::string s = "{key: 'val валъ', key2: \"val2\\n\\t\"}";
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root.values_map.size() != 2) return false;
+				std::string s2 = builder.root.values_map.find("key")->second.get<std::string>();
+				if (strcmp(s2.c_str(), "val валъ") != 0) return false;
+				s2 = builder.root.values_map.find("key2")->second.get<std::string>();
+				if (strcmp(s2.c_str(), "val2\n\t") != 0) return false;
+			}
+			{
+				std::string s = "[]";
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root.values_list.size() != 0) return false;
+			}
+			{
+				std::string s = "{}";
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root.values_map.size() != 0) return false;
+			}
+			{
+				std::string s = "";
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root.type != LSCL::NODETYPE_NONE) return false;
+			}
+			{
+				std::string s = "\n \n   \n\t\n   ";
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root.type != LSCL::NODETYPE_NONE) return false;
+			}
+			{
+				std::string s = "aaaa";
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root.type != LSCL::NODETYPE_SCALAR) return false;
+			}
 		}
-		catch (LSCL::Exception::Exception_nodebuilder e)
+		catch (LSCL::Exception::Exception_nodebuilder &e)
 		{
 			std::cout << e.what() << std::endl;
+			return false;
 		}
-		catch (LSCL::Exception::Exception e)
+		catch (LSCL::Exception::Exception &e)
 		{
 			std::cout << e.what() << std::endl;
+			return false;
 		}
 		
 		return true;

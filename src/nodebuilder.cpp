@@ -41,7 +41,7 @@
 		);                                               \
 		auto inserted = workpoint->values_map.find(key); \
 		if (inserted == workpoint->values_map.end())     \
-			throw LSCL::Exception::Exception_nodebuilder("Adding " + std::string(t_name) + " into map", ss_.get_line()); \
+			throw LSCL::Exception::Exception_nodebuilder("Adding " + std::string(t_name) + " into map", filename, ss_.get_line()); \
 		workpoint = &(inserted->second);                 \
 	}                                                    \
 	else if (last == NODEWAY_COMMA_LIST)                 \
@@ -51,8 +51,18 @@
 		);                                               \
 		workpoint = &( workpoint->values_list.back() );  \
 	}                                                    \
-	else throw LSCL::Exception::Exception_nodebuilder("Adding " + std::string(t_name) + " into non-container node", ss_.get_line());
+	else throw LSCL::Exception::Exception_nodebuilder("Adding " + std::string(t_name) + " into non-container node", filename, ss_.get_line());
 
+// If symbol is one of which terminate scalar parsing
+inline bool is_scalar_terminating_symbol(const char c)
+{
+	return (
+		c == '[' || c == ']' ||
+		c == '{' || c == '}' ||
+		c == ':' || c == '#' ||
+		c == ','
+	);
+}
 
 namespace LSCL
 {
@@ -64,13 +74,17 @@ namespace Nodebuilder
  * Class constructor.
  * Initializes class from input stream,
  * reads first portion of characters into rx buffer
+ * 
+ * Warning! This is the most critical section, write code as effective as possible.
+ * 
  */
-Builder::Builder(std::istream &input) :
+Builder::Builder(std::istream &input, const std::string &filename) :
 	ss_(input),
+	filename_(filename),
 	root(NODETYPE_MAP, nullptr)
 {
 #ifdef __DEBUG
-	std::cout << "Nodebuilder constructor start" << std::endl;
+	std::cout << "\nNodebuilder constructor start" << std::endl;
 #endif
 	
 	std::string key; // Key for map
@@ -79,6 +93,9 @@ Builder::Builder(std::istream &input) :
 	
 	// Detecting root type (list or map)
 	const char first_c = ss_.peek_next_char(); // Get first char from stream
+	register char c;
+	bool character_preserved = false; // Flag for cases when functional symbol is eaten by algorithm
+	
 	if (first_c == EOF || first_c == '\0') // If no structure in file
 	{
 		root = Node_internal(NODETYPE_NONE, nullptr);
@@ -97,7 +114,15 @@ Builder::Builder(std::istream &input) :
 		nodestack_.push(NODEWAY_LIST); // List into stack
 		nodestack_.push(NODEWAY_COMMA_LIST); // Push comma such if it was comma first in the list
 	}
-	else throw LSCL::Exception::Exception_nodebuilder("Unable to detect root type (list or map). All file contents should be inside [] or {} brackets.", ss_.get_line());
+	else //throw LSCL::Exception::Exception_nodebuilder("Unable to detect root type (list or map). All file contents should be inside [] or {} brackets.", filename, ss_.get_line());
+	{
+		// Just one scalar in file
+		std::string current_scalar = process_scalar(); // Get scalar string
+		c = ss_.peek_next_char();
+		if (c != EOF && c != '\0') throw LSCL::Exception::Exception_nodebuilder("Incorrect scalar format", filename, ss_.get_line());
+		root = Node_internal(nullptr, current_scalar); // Create list at tree root
+		return;
+	}
 	
 	ss_.eat_next_char();
 	ss_.skip_spaces();
@@ -106,7 +131,7 @@ Builder::Builder(std::istream &input) :
 	
 	while (ss_ && !nodestack_.empty() && workpoint)
 	{
-		const char c = ss_.peek_next_char(); // Get one char from stream
+		c = ss_.peek_next_char(); // Get one char from stream
 		const NODEWAY last = nodestack_.top(); // Get type of last 
 #ifdef __DEBUG
 	std::cout << "Parsing type " << last << std::endl;
@@ -124,9 +149,10 @@ Builder::Builder(std::istream &input) :
 			}
 			case '}':
 			{
-				if (last == NODEWAY_COMMA_MAP) nodestack_.pop(); // Map end
-				if (last == NODEWAY_MAP) nodestack_.pop();
-				else throw LSCL::Exception::Exception_nodebuilder("\'}\' bracket appeared in wrong place", ss_.get_line());
+				if (last             == NODEWAY_KEY)       nodestack_.pop(); // Map end
+				if (nodestack_.top() == NODEWAY_COMMA_MAP) nodestack_.pop();
+				if (nodestack_.top() == NODEWAY_MAP)       nodestack_.pop();
+				else throw LSCL::Exception::Exception_nodebuilder("\'}\' bracket appeared in wrong place", filename, ss_.get_line());
 				
 				workpoint = workpoint->parent;
 				
@@ -142,9 +168,9 @@ Builder::Builder(std::istream &input) :
 			}
 			case ']':
 			{
-				if (last == NODEWAY_COMMA_LIST) nodestack_.pop(); // List end
-				if (last == NODEWAY_LIST) nodestack_.pop();
-				else throw LSCL::Exception::Exception_nodebuilder("\']\' bracket appeared in wrong place", ss_.get_line());
+				if (last             == NODEWAY_COMMA_LIST) nodestack_.pop(); // List end
+				if (nodestack_.top() == NODEWAY_LIST)       nodestack_.pop();
+				else throw LSCL::Exception::Exception_nodebuilder("\']\' bracket appeared in wrong place", filename, ss_.get_line());
 				
 				workpoint = workpoint->parent;
 				
@@ -152,16 +178,21 @@ Builder::Builder(std::istream &input) :
 			}
 			case ',':
 			{
-				     if (last == NODEWAY_LIST) nodestack_.push(NODEWAY_COMMA_LIST);
-				else if (last == NODEWAY_MAP)  nodestack_.push(NODEWAY_COMMA_MAP);
+				     if (last == NODEWAY_LIST)   nodestack_.push(NODEWAY_COMMA_LIST);
+				else if (last == NODEWAY_MAP)  { nodestack_.push(NODEWAY_COMMA_MAP); nodestack_.push(NODEWAY_KEY); }
 				else if (last != NODEWAY_COMMA_LIST && last != NODEWAY_COMMA_MAP)
-					throw LSCL::Exception::Exception_nodebuilder("Comma appeared in wrong place", ss_.get_line());
+					throw LSCL::Exception::Exception_nodebuilder("Comma appeared in wrong place", filename, ss_.get_line());
+				
+#ifdef __DEBUG
+				std::cout << "Comma" << std::endl;
+#endif
 				
 				break;
 			}
 			case ':':
 			{
-				if (last != NODEWAY_COMMA_MAP) throw LSCL::Exception::Exception_nodebuilder("Key:value delimiter \':\' in the wrong place", ss_.get_line());
+				if (last == NODEWAY_KEY) throw LSCL::Exception::Exception_nodebuilder("No key before key:value delimiter \':\'", filename, ss_.get_line());
+				if (last != NODEWAY_COMMA_MAP) throw LSCL::Exception::Exception_nodebuilder("Key:value delimiter \':\' in the wrong place", filename, ss_.get_line());
 				break;
 			}
 			case '#':
@@ -175,6 +206,8 @@ Builder::Builder(std::istream &input) :
 #ifdef __DEBUG
 				std::cout << "Got scalar: |" << current_scalar << '|' << std::endl;
 #endif
+				// If we need to preserve next character in stream
+				character_preserved = is_scalar_terminating_symbol(ss_.peek_next_char());
 				
 				switch (last)
 				{
@@ -197,7 +230,7 @@ Builder::Builder(std::istream &input) :
 					{
 						workpoint->values_list.push_back(Node_internal(workpoint, current_scalar));
 #ifdef __DEBUG
-std::cout << "Pushed new scalar into list, size=" << workpoint->values_list.size() << " type=" << workpoint->values_list[0].type << std::endl;
+std::cout << "Pushed new element into list, list size = " << workpoint->values_list.size() << " type=" << workpoint->values_list[0].type << std::endl;
 #endif
 						nodestack_.pop(); // Pop comma_list nodeway flag
 						break;
@@ -205,19 +238,21 @@ std::cout << "Pushed new scalar into list, size=" << workpoint->values_list.size
 					case NODEWAY_MAP:
 					case NODEWAY_LIST:
 					{
-						throw LSCL::Exception::Exception_nodebuilder("Nodes in map or list are not comma-separated", ss_.get_line());
+						throw LSCL::Exception::Exception_nodebuilder("Nodes in map or list are not comma-separated", filename, ss_.get_line());
 						break;
 					}
 					
-					default: { throw LSCL::Exception::Exception_nodebuilder("Trying to insert scalar into wrong container", ss_.get_line()); break; }
+					default: { throw LSCL::Exception::Exception_nodebuilder("Trying to insert scalar into wrong container", filename, ss_.get_line()); break; }
 				}
-			}
-		}
+				
+			} // End default
+		} // End case
 		
-		ss_.eat_next_char(); // Go to next char
+		if (!character_preserved) ss_.eat_next_char(); // Go to next char
+		else character_preserved = false;
 		ss_.skip_spaces(); // Skip blank space before next trigger
 		
-		//else { throw LSCL::Exception::Exception_nodebuilder("Incorrect syntax", ss_.get_line()); }
+		//else { throw LSCL::Exception::Exception_nodebuilder("Incorrect syntax", filename, ss_.get_line()); }
 		
 	}
 #ifdef __DEBUG
@@ -247,7 +282,7 @@ std::string Builder::process_scalar(void)
 	
 	while (c)
 	{
-		c = ss_.pop_next_char();
+		c = ss_.peek_next_char();
 		
 		// Skipping blank space before value start and in the beginning
 		// of each line (if it is multiline scalar value)
@@ -256,6 +291,35 @@ std::string Builder::process_scalar(void)
 			while (c == ' ' || c == '\t') c = ss_.pop_next_char();
 		}
 		skiping_spaces = false;
+		
+		if (!escaped)
+		{
+			
+			// If function meets line-break
+			if (c == '\n')
+			{
+				// If line-break is inside quotes
+				if (quote_double || quote_single)
+				{
+					// \n
+					if (triangle) answer.push_back('\n');
+					skiping_spaces = true;
+					ss_.eat_next_char();
+					continue;
+				}
+				// If line-break is beyond quotes
+				else break;
+			}
+			
+			// If we reached scalar end
+			if (is_scalar_terminating_symbol(c))
+			{
+				if (!quote_single && !quote_double && !triangle) break; // Special symbol stops scalar parsing
+				else throw LSCL::Exception::Exception_nodebuilder("Scalar contains forbidden symbol: \'" + std::to_string(c) + "\'", filename_, ss_.get_line());
+			}
+		}
+		
+		ss_.eat_next_char(); // It is not scalar-terminating symbol, we can destroy symbol in stream
 		
 		// If function meets double quote
 		if (c == '\"' && !escaped && !quote_single)
@@ -309,7 +373,7 @@ std::string Builder::process_scalar(void)
 						}
 					}
 					// Else throw exception
-					else throw LSCL::Exception::Exception_nodebuilder("Symbol hex code in string is defined incorrectly. Correct format is: \\x< hex code >;", ss_.get_line());
+					else throw LSCL::Exception::Exception_nodebuilder("Symbol hex code in string is defined incorrectly. Correct format is: \\x< hex code >;", filename_, ss_.get_line());
 					
 					break;
 				}
@@ -323,36 +387,6 @@ std::string Builder::process_scalar(void)
 			
 			escaped = false; // End escape
 			continue;
-		}
-		
-		
-		if (!escaped)
-		{
-			
-			// If function meets line-break
-			if (c == '\n')
-			{
-				// If line-break is inside quotes
-				if (quote_double || quote_single)
-				{
-					// \n
-					if (triangle) answer.push_back('\n');
-					skiping_spaces = true;
-					continue;
-				}
-				// If line-break is beyond quotes
-				else break;
-			}
-			
-			if (
-				c == '[' || c == ']' ||
-				c == '{' || c == '}' ||
-				c == ':' || c == '#' || c == ','
-			)
-			{
-				if (!quote_single && !quote_double && !triangle) break; // Special symbol stops scalar parsing
-				else throw LSCL::Exception::Exception_nodebuilder("Scalar contains forbidden symbol: \'" + std::to_string(c) + "\'", ss_.get_line());
-			}
 		}
 		
 		// If function meets escaping character

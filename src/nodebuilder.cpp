@@ -120,7 +120,7 @@ Builder::Builder(std::istream &input, const std::string &filename) :
 		std::string current_scalar = process_scalar(); // Get scalar string
 		c = ss_.peek_next_char();
 		if (c != EOF && c != '\0') throw LSCL::Exception::Exception_nodebuilder("Incorrect scalar format", filename, ss_.get_line());
-		root = Node_internal(nullptr, current_scalar); // Create list at tree root
+		root = Node_internal(nullptr, current_scalar); // Create scalar at tree root
 		return;
 	}
 	
@@ -280,6 +280,15 @@ std::string Builder::process_scalar(void)
 	bool skiping_spaces = true;
 	bool triangle       = false; // Triangle brackets
 	
+	ss_.skip_spaces();
+	c = ss_.peek_next_char();
+	// If function meets triangle bracket in the beginning
+	if (c == '<')
+	{
+		triangle = true; // Flag that we a re preserving \n charactes inside strings
+		ss_.eat_next_char();
+	}
+	
 	while (c)
 	{
 		c = ss_.peek_next_char();
@@ -299,6 +308,7 @@ std::string Builder::process_scalar(void)
 			if (c == '\n')
 			{
 				// If line-break is inside quotes
+				// (line-break outside quotes is a delimiter in lists and maps)
 				if (quote_double || quote_single)
 				{
 					// \n
@@ -401,6 +411,19 @@ std::string Builder::process_scalar(void)
 		// Push current character into collector
 		answer.push_back(c);
 	}
+	
+	// Erase white spaces in the end of unquoted string
+	if (!quote_double && !quote_single)
+		while (answer.back() == ' ' || answer.back() == '\t' || answer.back() == '\n') answer.pop_back();
+	
+	// Process closing triangle bracket
+	else
+		if (triangle)
+		{
+			ss_.skip_spaces();
+			if (ss_.peek_next_char() == '>') ss_.eat_next_char();
+			else throw LSCL::Exception::Exception_nodebuilder("Opening triangle bracket \"<\" without closing one \">\"", filename_, ss_.get_line());
+		}
 	
 #ifdef __DEBUG
 	std::cout << "Process scalar end" << std::endl;

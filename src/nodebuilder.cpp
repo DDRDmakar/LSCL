@@ -358,17 +358,16 @@ std::string Builder::process_scalar(void)
 				case 'r': { answer.push_back('\r'); break; } // Carriage return
 				case 'x': { // Hex representation
 					std::string current_hex_value;
-					c = ss_.peek_next_char();
-					// Pushing hex symbol code into string
+					do
+					{
+						c = ss_.pop_next_char();
+						current_hex_value.push_back(c);
+					}
 					while (
 						('0' <= c && c <= '9') ||
 						('a' <= c && c <= 'f') ||
 						('A' <= c && c <= 'F')
-					)
-					{
-						current_hex_value.push_back(ss_.pop_next_char());
-						c = *(current_hex_value.end() - 1);
-					}
+					);
 					
 					if (c == ';') // If ending symbol is valid (; in the end if hex symbol surrogate)
 					{
@@ -383,7 +382,7 @@ std::string Builder::process_scalar(void)
 						}
 					}
 					// Else throw exception
-					else throw LSCL::Exception::Exception_nodebuilder("Symbol hex code in string is defined incorrectly. Correct format is: \\x< hex code >;", filename_, ss_.get_line());
+					else throw LSCL::Exception::Exception_nodebuilder("Symbol hex code in string is defined incorrectly (" + current_hex_value + "). Correct format is: \\x< hex code >;", filename_, ss_.get_line());
 					
 					break;
 				}
@@ -394,7 +393,6 @@ std::string Builder::process_scalar(void)
 					break;
 				}
 			}
-			
 			escaped = false; // End escape
 			continue;
 		}

@@ -227,6 +227,27 @@ namespace LSCL
 				std::string s2 = builder.root.values_map.find("key2")->second.values_map.find("key3")->second.get<std::string>();
 				if (strcmp(s2.c_str(), "val3") != 0) return false;
 			}
+			
+			{
+				// Hex code
+				std::string s = "aaaa\\x55;";
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root.type != LSCL::NODETYPE_SCALAR) return false;
+				std::string s2 = builder.root.get<std::string>();
+				//std::cout << '|' << s2 << '|' << std::endl;
+				if (strcmp(s2.c_str(), "aaaa\x55") != 0) return false;
+			}
+			
+			{
+				// Hex code
+				std::string s = "\\x0412;\\x0430;\\x0440;\\x0435;\\x043D;\\x044c;\\x0435;";
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root.type != LSCL::NODETYPE_SCALAR) return false;
+				std::string s2 = builder.root.get<std::string>();
+				if (strcmp(s2.c_str(), "Варенье") != 0) return false;
+			}
 		}
 		catch (LSCL::Exception::Exception_nodebuilder &e)
 		{

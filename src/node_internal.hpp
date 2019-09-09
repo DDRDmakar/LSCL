@@ -110,8 +110,6 @@ namespace LSCL
 	class Node_internal
 	{
 	private:
-		//mutable SCALARTYPE value_prepaired_type_;
-		//mutable void *value_prepaired_;
 		
 	protected:
 		
@@ -124,6 +122,8 @@ namespace LSCL
 		std::vector<LSCL::Node_internal> values_list; // LIST: list of values
 		std::map<std::string, Node_internal> values_map; // MAP: map of values
 		
+		// Default constructor
+		Node_internal(void);
 		// Any type (empty) - constructs empty node
 		Node_internal(
 			const NODETYPE nt, 
@@ -152,16 +152,6 @@ namespace LSCL
 		
 		template <typename T>
 		T get(void) const;
-		
-		//const Node_internal* get_parent(void) const;
-		
-		//Node_internal& operator[](const std::string &key);
-		//Node_internal& operator[](const size_t       idx);
-		//bool remove(const std::string &key);
-		//bool remove(const size_t       idx);
-		//void insert(const Node_internal &element, const size_t idx = 0);
-		//std::vector<Node_internal>* get_vector(void) const;
-		//void set_parent(const Node_internal *parent);
 		
 		size_t size(void) const;
 	};

@@ -38,21 +38,21 @@ include(GNUInstallDirs)
 set(LSCL_SOURCES
 	src/lscl.cpp
 	src/nodebuilder.cpp
-	src/scalar.cpp
 	src/stream.cpp
 	src/global.cpp
 	src/exception.cpp
 	src/node_internal.cpp
+	src/node.cpp
 	src/test.cpp
 )
 
 set(LSCL_HEADERS
 	src/defines.hpp
 	src/nodebuilder.hpp
-	src/scalar.hpp
 	src/stream.hpp
 	src/exception.hpp
 	src/node_internal.hpp
+	src/node.hpp
 	src/test.hpp
 )
 

@@ -20,22 +20,28 @@
 
 #include "node_internal.hpp"
 
-/*
- 
- #include <type_traits>
+/* 
+#include <type_traits>
 
 template <typename T>
-void foo() {
-    if constexpr (std::is_same_v<T, animal>) {
-        // use type specific operations... 
-    } 
+void foo()
+{
+	if constexpr (std::is_same_v<T, animal>)
+	{
+		// use type specific operations... 
+	}
 }
- 
- * */
+*/
 
 namespace LSCL
 {
 	//=====[ C O N S T R U C T O R S ]=====//
+	
+	// Default constructor
+	Node_internal::Node_internal(void) :
+		parent(nullptr),
+		type(NODETYPE_NONE)
+	{}
 	
 	// Any type (empty)
 	Node_internal::Node_internal(
@@ -43,8 +49,6 @@ namespace LSCL
 		Node_internal *parent
 	)
 	: 
-		//value_prepaired_type_(SCALARTYPE_NONE),
-		//value_prepaired_(nullptr), 
 		parent(parent), 
 		type(nt)
 	{
@@ -56,8 +60,6 @@ namespace LSCL
 		const std::string &value
 	)
 	: 
-		//value_prepaired_type_(SCALARTYPE_NONE),
-		//value_prepaired_(nullptr),
 		parent(parent), 
 		type(NODETYPE_SCALAR), 
 		value(value)
@@ -70,8 +72,6 @@ namespace LSCL
 		const std::vector<Node_internal> &value
 	)
 	: 
-		//value_prepaired_type_(SCALARTYPE_NONE),
-		//value_prepaired_(nullptr),
 		parent(parent), 
 		type(NODETYPE_LIST), 
 		values_list(value)
@@ -84,8 +84,6 @@ namespace LSCL
 		const std::map<std::string, Node_internal> &value
 	)
 	: 
-		//value_prepaired_type_(SCALARTYPE_NONE),
-		//value_prepaired_(nullptr),
 		parent(parent), 
 		type(NODETYPE_MAP), 
 		values_map(value)
@@ -109,60 +107,5 @@ namespace LSCL
 	}
 	
 	bool Node_internal::is(NODETYPE nodetype) const { return type == nodetype; }
-	
-	//=====[ S C A L A R ]=====//
-	
-	
-	
-	//=====[ L I S T ]=====//
-	/*
-	Node_internal& Node_internal::operator[](const size_t idx)
-	{
-		if (idx >= values_list_.size())
-		{
-			throw LSCL::Exception::Exception_access("List index is out-of-range");
-		}
-		return values_list_[idx];
-	}
-	*/
-	/*
-	void Node_internal::insert(const Node_internal &element, const size_t idx)
-	{
-		if (!idx) // idx == 0
-		{
-			values_list_.push_back(element);
-		}
-		else
-		{
-			values_list_.insert(values_list_.begin(), element);
-		}
-	}
-	*/
-	/*
-	bool Node_internal::remove(const size_t idx)
-	{
-		if (idx >= values_list_.size())
-		{
-			// throw LSCL::Exception::Exception_modify("List index is out-of-range");
-			return false;
-		}
-		values_list_.erase(values_list_.begin() + idx);
-		return true;
-	}
-	*/
-	
-	//=====[ M A P ]=====//
-	/*
-	Node_internal& Node_internal::operator[](const std::string &key)
-	{
-		
-	}
-	*/
-	/*
-	bool Node_internal::remove(const std::string &key)
-	{
-		
-	}
-	*/
 	
 } // Namespace LSCL

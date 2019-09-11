@@ -108,7 +108,7 @@ std::wstring from_safestring(std::wstring current_line)
 		
 		if (escaped && current_line[i] == L'x')
 		{
-			unsigned int surrogate_position = i - 1;
+			size_t surrogate_position = i - 1;
 			wchar_t ss = current_line[++i]; // Current surrogate symbol
 			
 			while (

@@ -138,7 +138,7 @@ Stream::operator bool() const
 	return in_stream.good() || (peek_next_char() != '\0' && peek_next_char() != EOF);
 }
 
-unsigned int Stream::get_line(void) const
+size_t Stream::get_line(void) const
 {
 	return line;
 }

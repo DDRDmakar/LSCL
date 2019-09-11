@@ -50,12 +50,12 @@ namespace LSCL
 		{
 		protected:
 			std::string filename;
-			unsigned int line; // Line counter value
+			size_t line; // Line counter value
 		public:
 			Exception_nodebuilder(
 				const std::string &desc = "", 
 				const std::string &f = "", 
-				const unsigned int l = 0
+				const size_t l = 0
 			) : 
 				Exception(desc),
 				filename(f),

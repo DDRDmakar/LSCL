@@ -49,7 +49,7 @@ O utf8_to_uint32(const I &inp) noexcept
 	
 	O target;   // Target vector of values
 	uint32_t current_symbol;        // Current 32-bit symbol
-	unsigned int i;                 // Bytes counters. i - whole bytes count
+	size_t i;                 // Bytes counters. i - whole bytes count
 	unsigned char j, bytes_count;   // j - bytes count in one sequence
 	uint8_t sample, mask;           // First byte in sequence and mask for it
 	
@@ -96,7 +96,7 @@ O utf8_to_uint32(const I &inp) noexcept
  * Second argument "len" is a length of given sequence
  */
 template <typename I, class O>
-O utf8_ptr_to_uint32(const I *inp, const unsigned int len) noexcept
+O utf8_ptr_to_uint32(const I *inp, const size_t len) noexcept
 {
 	return utf8_to_uint32<std::vector<I>, O>
 	(std::vector<I>(inp, inp + len));
@@ -236,7 +236,7 @@ O uint32_to_utf8(const I &inp) noexcept
  * Second argument "len" is a length of given sequence
  */
 template <typename I, class O>
-O uint32_ptr_to_utf8(const I *inp, const unsigned int len) noexcept
+O uint32_ptr_to_utf8(const I *inp, const size_t len) noexcept
 {
 	return uint32_to_utf8<std::vector<I>, O>
 	(std::vector<I>(inp, inp + len));

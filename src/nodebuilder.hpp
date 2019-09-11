@@ -22,6 +22,8 @@
 #include <string>
 #include <sstream>
 #include <stack>
+#include <unordered_map>
+#include <memory>
 
 #include "../lscl/lscl.hpp"
 #include "stream.hpp"
@@ -56,15 +58,19 @@ namespace LSCL
 				NODEWAY_SCALAR = 3,
 				NODEWAY_KEY,
 				NODEWAY_COMMA_MAP,
-				NODEWAY_COMMA_LIST
+				NODEWAY_COMMA_LIST,
+				NODEWAY_LINK_CREATION
 			};
 			
 			
 			Stream ss_;                     // Characters stream to read from
 			std::stack<NODEWAY> nodestack_; // Stack of the hierarchy we are digging into
 			std::string filename_;          // Name of parsed file (or empty if we parse string)
+			std::unordered_map<std::string, Node_internal*> links; // Named links to nodes
+			std::unordered_map<std::string, Node_internal*> linked_nodes; // Nodes which should be linked by named links
 			
 			std::string process_scalar(void); // Processing of scalar value
+			void process_directive(Node_internal *workpoint); // Processing of directive
 			
 		public:
 			
@@ -73,8 +79,7 @@ namespace LSCL
 			// If the parser has some valid input to be read
 			// explicit operator bool() const;
 			
-			Node_internal root; // Root of node tree
-			
+			std::shared_ptr<Node_internal> root; // Root of node tree
 		};
 		
 	} // Namespace Nodebuilder

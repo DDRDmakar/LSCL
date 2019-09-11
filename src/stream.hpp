@@ -55,7 +55,7 @@ public:
 	void eat_next_char(void)  const;
 	
 	bool skip_spaces(void) const;
-	unsigned int get_line(void) const;
+	size_t get_line(void) const;
 	
 	operator bool() const;
 	

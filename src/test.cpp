@@ -270,6 +270,29 @@ namespace LSCL
 				std::string s2 = builder.root->get<std::string>();
 				if (strcmp(s2.c_str(), "Варенье") != 0) return false;
 			}
+			
+			{
+				// link creation (quoted)
+				std::string s = "{az: &'link' val}";
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root->values_map.size() != 1) return false;
+				std::string s2 = builder.root->values_map["az"].get<std::string>();
+				if (strcmp(s2.c_str(), "val") != 0) return false;
+				if (builder.links_.size() != 1) return false;
+				if (builder.links_["link"]->type != LSCL::NODETYPE_SCALAR) return false;
+			}
+			{
+				// link creation (single word)
+				std::string s = "{az: &link val}";
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+				if (builder.root->values_map.size() != 1) return false;
+				std::string s2 = builder.root->values_map["az"].get<std::string>();
+				if (strcmp(s2.c_str(), "val") != 0) return false;
+				if (builder.links_.size() != 1) return false;
+				if (builder.links_["link"]->type != LSCL::NODETYPE_SCALAR) return false;
+			}
 		}
 		catch (LSCL::Exception::Exception_nodebuilder &e)
 		{

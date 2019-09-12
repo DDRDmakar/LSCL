@@ -65,11 +65,14 @@ namespace LSCL
 			Stream ss_;                     // Characters stream to read from
 			std::stack<NODEWAY> nodestack_; // Stack of the hierarchy we are digging into
 			std::string filename_;          // Name of parsed file (or empty if we parse string)
-			std::unordered_map<std::string, Node_internal*> links; // Named links to nodes
-			std::unordered_map<std::string, Node_internal*> linked_nodes; // Nodes which should be linked by named links
+			std::unordered_map<std::string, Node_internal*> links_; // Named links to nodes
+			std::unordered_map<std::string, Node_internal*> linked_nodes_; // Nodes which should be linked by named links
 			
 			std::string process_scalar(void); // Processing of scalar value
+			std::string process_single_word(void); // Processing plain text word without escaped characters quotes, spaces and line-breaks
 			void process_directive(Node_internal *workpoint); // Processing of directive
+			void assign_links(void); // Assign links to link names after all objects are created
+			void build_tree(void);
 			
 		public:
 			

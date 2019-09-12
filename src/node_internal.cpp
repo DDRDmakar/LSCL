@@ -40,7 +40,8 @@ namespace LSCL
 	// Default constructor
 	Node_internal::Node_internal(void) :
 		parent(nullptr),
-		type(NODETYPE_NONE)
+		type(NODETYPE_NONE),
+		linked(nullptr)
 	{}
 	
 	// Any type (empty)
@@ -50,7 +51,8 @@ namespace LSCL
 	)
 	: 
 		parent(parent), 
-		type(nt)
+		type(nt),
+		linked(nullptr)
 	{
 	}
 	
@@ -62,7 +64,8 @@ namespace LSCL
 	: 
 		parent(parent), 
 		type(NODETYPE_SCALAR), 
-		value(value)
+		value(value),
+		linked(nullptr)
 	{
 	}
 	
@@ -74,7 +77,8 @@ namespace LSCL
 	: 
 		parent(parent), 
 		type(NODETYPE_LIST), 
-		values_list(value)
+		values_list(value),
+		linked(nullptr)
 	{
 	}
 	
@@ -86,7 +90,8 @@ namespace LSCL
 	: 
 		parent(parent), 
 		type(NODETYPE_MAP), 
-		values_map(value)
+		values_map(value),
+		linked(nullptr)
 	{
 	}
 	

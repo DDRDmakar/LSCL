@@ -131,7 +131,7 @@ Builder::Builder(std::istream &input, const std::string &filename) :
 		nodestack_.push(NODEWAY_LIST); // List into stack
 		nodestack_.push(NODEWAY_COMMA_LIST); // Push comma such if it was comma first in the list
 	}
-	else //throw LSCL::Exception::Exception_nodebuilder("Unable to detect root type (list or map). All file contents should be inside [] or {} brackets.", filename, ss_.get_line());
+	else
 	{
 		// Just one scalar in file
 		std::string current_scalar = process_scalar(); // Get scalar string
@@ -232,30 +232,35 @@ Builder::Builder(std::istream &input, const std::string &filename) :
 				character_preserved = is_scalar_terminating_symbol(ss_.peek_next_char()); // If we need to preserve next character in stream
 				
 				// Save link with its name
-				Node_internal *referenced;
+				Node_internal *node_to_work_with;
 				// If link is value in key-value pair
 				if (last == NODEWAY_COMMA_MAP)
 				{
-					// Create empty value (type NONE to replace it later)
+					// Create link node
 					workpoint->values_map.insert({
 						key,
-						Node_internal(NODETYPE_NONE, workpoint)
+						Node_internal(NODETYPE_LINK, workpoint)
 					});
-					referenced = &workpoint->values_map[key];
-					
-					// Save link to this scalar into links map
-					LINK_CREATION(referenced);
-					
-					nodestack_.pop(); // Pop comma_map nodeway flag
+					node_to_work_with = &workpoint->values_map[key];
 				}
-				else
+				// If link is element of list
+				else if (last == NODEWAY_COMMA_LIST)
 				{
-					referenced = workpoint;
+					// Create link node
+					workpoint->values_list.push_back(
+						Node_internal(NODETYPE_LINK, workpoint)
+					);
+					node_to_work_with = &workpoint->values_list.back();
 				}
+				
+				// Save link to this scalar into links map, if needed
+				LINK_CREATION(node_to_work_with);
+				
+				nodestack_.pop(); // Pop comma_list or comma_map nodeway flag
 				
 				linked_nodes.insert({
 					linked_node_name,
-					referenced
+					node_to_work_with
 				});
 				
 				break;

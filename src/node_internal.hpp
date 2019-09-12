@@ -35,7 +35,8 @@ namespace LSCL
 		NODETYPE_NONE   = 0,
 		NODETYPE_MAP    = 1,
 		NODETYPE_LIST   = 2,
-		NODETYPE_SCALAR = 3
+		NODETYPE_SCALAR = 3,
+		NODETYPE_LINK   = 4
 	};
 	
 	/*
@@ -121,6 +122,7 @@ namespace LSCL
 		std::string value; // SCALAR: scalar value
 		std::vector<LSCL::Node_internal> values_list; // LIST: list of values
 		std::map<std::string, Node_internal> values_map; // MAP: map of values
+		Node_internal *linked; // Pointer to linked node 
 		
 		// Default constructor
 		Node_internal(void);

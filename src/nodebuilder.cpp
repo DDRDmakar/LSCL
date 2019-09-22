@@ -68,6 +68,13 @@
 	LINK_CREATION(workpoint)   \
 	
 
+namespace LSCL
+{
+
+namespace Nodebuilder
+{
+
+
 
 // If symbol is one of which terminate scalar parsing
 inline bool is_scalar_terminating_symbol(const char c)
@@ -81,11 +88,12 @@ inline bool is_scalar_terminating_symbol(const char c)
 	);
 }
 
-namespace LSCL
-{
 
-namespace Nodebuilder
+inline bool is_spacer(const char c)
 {
+	return (c == ' ' || c == '\n' || c == '\t');
+}
+
 
 /**
  * Class constructor.
@@ -102,8 +110,6 @@ Builder::Builder(std::istream &input, const std::string &filename) :
 	build_tree();
 	assign_links();
 }
-
-
 
 
 void Builder::build_tree(void)
@@ -232,9 +238,17 @@ void Builder::build_tree(void)
 				ss_.eat_next_char(); // Eat ampersand
 				ss_.skip_spaces();
 				c = ss_.peek_next_char();
-				// If link name is scalar
-				if (c == '<' || c == '\'' || c == '\"') link_name = process_scalar(); // Get link name as scalar
-				else link_name = process_single_word(); // Get link name as a single word
+				if (c == '<' || c == '\'' || c == '\"')
+				{
+					link_name = process_scalar(); // Get link name as scalar
+				}
+				else
+				{
+					link_name = process_single_word(); // Get link name as a single word
+					// After word we always should have delimiter (space or line-break)
+					c = ss_.peek_next_char();
+					if (c != ' ' && c != '\n' && c != '\t') throw LSCL::Exception::Exception_nodebuilder("Single word \"" + link_name + "\" is ending with \'" + std::to_string(c) + "\'", filename_, ss_.get_line());
+				}
 				
 				character_preserved = is_scalar_terminating_symbol(ss_.peek_next_char()); // If we need to preserve next character in stream
 				link_creation = true;
@@ -245,9 +259,11 @@ void Builder::build_tree(void)
 			}
 			case '*': // Referencing by link
 			{
-				/*
 				ss_.eat_next_char(); // Eat asterisk
-				std::string linked_node_name = process_scalar(); // Get link name as scalar
+				std::string linked_node_name;
+				
+				if (c == '<' || c == '\'' || c == '\"') linked_node_name = process_scalar(); // Get link name as scalar
+				else linked_node_name = process_single_word(); // Get link name as a single word
 				character_preserved = is_scalar_terminating_symbol(ss_.peek_next_char()); ; // If we need to preserve next character in stream
 				
 				// Save link with its name
@@ -283,7 +299,6 @@ void Builder::build_tree(void)
 				});
 				
 				break;
-				*/
 			}
 			default:
 			{
@@ -404,10 +419,11 @@ std::string Builder::process_scalar(void)
 			}
 			
 			// If we reached scalar end
-			if (c == '>' || is_scalar_terminating_symbol(c))
+			// If (character is not inside quoted string) and (character is > or terminating)
+			if (!quote_single && !quote_double && (c == '>' || is_scalar_terminating_symbol(c)))
 			{
-				if (!quote_single && !quote_double) break; // Special symbol stops scalar parsing
-				else if (c != '>') throw LSCL::Exception::Exception_nodebuilder("Scalar contains forbidden symbol: \'" + std::to_string(c) + "\'", filename_, ss_.get_line());
+				if (!triangle || c == '>') break; // Special symbol stops scalar parsing
+				else throw LSCL::Exception::Exception_nodebuilder("Scalar contains forbidden symbol: \'" + std::to_string(c) + "\' \'" + std::string(1, c) + "\'", filename_, ss_.get_line());
 			}
 		}
 		
@@ -522,8 +538,6 @@ std::string Builder::process_single_word(void)
 #endif
 	std::string answer;
 	
-	bool escaped = false;
-	
 	ss_.skip_spaces();
 	register char c;
 	
@@ -546,9 +560,6 @@ std::string Builder::process_single_word(void)
 		answer.push_back(c);
 	}
 	while (c); // End while
-	
-	// After word we always should have delimiter (space or line-break)
-	if (c != ' ' && c != '\n' && c != '\t') throw LSCL::Exception::Exception_nodebuilder("Single word \"" + answer + "\" is ending with \'" + std::to_string(c) + "\'", filename_, ss_.get_line());
 	
 #ifdef __DEBUG
 	std::cout << "Process single word end" << std::endl;

@@ -25,6 +25,21 @@
 
 namespace LSCL
 {
+	using namespace Test;
+	
+	void Testdata::add(Testcase tc)
+	{
+		testcases.push_back(tc);
+	}
+	void Testdata::add(bool passed, std::string name, std::string error)
+	{
+		testcases.push_back(Testcase{passed, name, error});
+	}
+	void Testdata::add(std::string name, std::string error)
+	{
+		testcases.push_back(Testcase{error.empty(), name, error});
+	}
+	
 	
 	bool test_builder(void)
 	{
@@ -282,17 +297,40 @@ namespace LSCL
 				if (builder.links_.size() != 1) return false;
 				if (builder.links_["link"]->type != LSCL::NODETYPE_SCALAR) return false;
 			}
+			/*
 			{
 				// link creation (single word)
-				std::string s = "{az: &link val}";
+				std::string s = 
+				"{\n"
+				"	az: &link val, \n"
+				"	as : *link,    \n"
+				"	as2: *\"link\",\n"
+				"	as3: &<link> , \n"
+				"	dedy: vaevale  \n"
+				"}\n";
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
-				if (builder.root->values_map.size() != 1) return false;
+				if (builder.root->values_map.size() != 3) return false;
+				
 				std::string s2 = builder.root->values_map["az"].get<std::string>();
 				if (strcmp(s2.c_str(), "val") != 0) return false;
 				if (builder.links_.size() != 1) return false;
 				if (builder.links_["link"]->type != LSCL::NODETYPE_SCALAR) return false;
+				
+				if (builder.root->values_map["as"].type != LSCL::NODETYPE_LINK) return false;
+				s2 = builder.root->values_map["as"].linked->get<std::string>();
+				if (strcmp(s2.c_str(), "val") != 0) return false;
+				
+				if (builder.root->values_map["as2"].type != LSCL::NODETYPE_LINK) return false;
+				s2 = builder.root->values_map["as"].linked->get<std::string>();
+				if (strcmp(s2.c_str(), "val") != 0) return false;
+				
+				if (builder.root->values_map["as3"].type != LSCL::NODETYPE_LINK) return false;
+				s2 = builder.root->values_map["as"].linked->get<std::string>();
+				if (strcmp(s2.c_str(), "val") != 0) return false;
+				
 			}
+			*/
 		}
 		catch (LSCL::Exception::Exception_nodebuilder &e)
 		{

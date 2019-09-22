@@ -20,8 +20,31 @@
 #ifndef _H_LSCL_TEST
 #define _H_LSCL_TEST
 
+#include <list>
+#include <string>
+
 namespace LSCL
 {
+	
+	namespace Test
+	{
+		struct Testcase
+		{
+			bool passed;
+			std::string name;
+			std::string error;
+		};
+		
+		class Testdata
+		{
+		public:
+			std::list<Testcase> testcases;
+			void add(Testcase tc);
+			void add(bool passed, std::string name, std::string error = "");
+			void add(std::string name, std::string error = "");
+		};
+		
+	} // Namespace test
 	
 	bool test_builder(void);
 	

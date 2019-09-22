@@ -117,9 +117,7 @@ char Stream::pop_next_char(void) const
  */
 char Stream::peek_next_char(void) const
 {
-	if (!setup_rx_buffer()) return '\0';
-	if (rx_buffer[n_prefetched_bytes_used] == '\n') ++line;
-	return rx_buffer[n_prefetched_bytes_used];
+	return setup_rx_buffer() ? rx_buffer[n_prefetched_bytes_used] : '\0';
 }
 
 /**
@@ -128,6 +126,7 @@ char Stream::peek_next_char(void) const
 void Stream::eat_next_char(void) const
 {
 	if (setup_rx_buffer()) ++n_prefetched_bytes_used;
+	if (rx_buffer[n_prefetched_bytes_used] == '\n') ++line;
 }
 
 /**

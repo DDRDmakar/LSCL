@@ -35,18 +35,31 @@ namespace LSCL
 			std::string error;
 		};
 		
+		class Testblock
+		{
+		public:
+			std::string name;
+			std::list<Testcase> testcases;
+			
+			Testblock(const std::string &name);
+			
+			void add(const Testcase &tc);
+			void add(const bool &passed, const std::string &name, const std::string &error = "");
+			void add(const std::string &name, const std::string &error = "");
+		};
+		
 		class Testdata
 		{
 		public:
-			std::list<Testcase> testcases;
-			void add(Testcase tc);
-			void add(bool passed, std::string name, std::string error = "");
-			void add(std::string name, std::string error = "");
+			std::list<Testblock> testblocks;
+			
+			Testblock* add(const std::string &name);
+			Testblock* add(const std::string &name, Testblock tb);
 		};
 		
+		Testdata test_builder(void);
+		
 	} // Namespace test
-	
-	bool test_builder(void);
 	
 } // Namespace LSCL
 

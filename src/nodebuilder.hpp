@@ -49,7 +49,7 @@ namespace LSCL
 		private:
 			
 			// Friend function to perform tests
-			friend bool LSCL::test_builder(void);
+			friend LSCL::Test::Testdata LSCL::Test::test_builder(void);
 			
 			enum NODEWAY
 			{

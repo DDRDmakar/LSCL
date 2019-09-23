@@ -192,5 +192,25 @@ TEST_CASE( "get<> method", "[nodes]" )
 
 TEST_CASE( "Escape sequences", "[nodebuilder]" )
 {
-	REQUIRE(LSCL::test_builder() == true);
+	LSCL::Test::Testdata data = LSCL::Test::test_builder();
+	bool block_ok = true;
+	for (auto &tb : data.testblocks)
+	{
+		for (auto &tc : tb.testcases)
+		{
+			if (!tc.passed)
+			{
+				if (block_ok)
+				{
+					std::cout << "Testblock: " << tb.name << std::endl;
+					block_ok = false;
+				}
+				std::cout << "	Testcase: " << tc.name << " : " << tc.error << std::endl;
+			}
+		}
+		REQUIRE(block_ok == true);
+	}
+	
+	std::cout << "Nodebuilder testing finished (" << data.testblocks.size() << " testblocks OK)" << std::endl;
+	
 }

@@ -16,18 +16,40 @@
  * 
  */
 
+#ifndef _H_LSCL_GLOBAL
+#define _H_LSCL_GLOBAL
+
 #include <stdint.h>
 #include <vector>
 #include <string>
 #include <wchar.h>
 
-#ifndef _H_LSCL_GLOBAL
-#define _H_LSCL_GLOBAL
-
 // Global variables and functions
 
 namespace LSCL
 {
+
+enum NODETYPE
+{
+	NODETYPE_NONE   = 0,
+	NODETYPE_MAP    = 1,
+	NODETYPE_LIST   = 2,
+	NODETYPE_SCALAR = 3,
+	NODETYPE_LINK   = 4
+};
+
+std::string get_nodetype_name(NODETYPE type);
+
+inline bool is_spacer(const char c)
+{
+	return (
+		c == ' '    ||
+		c == '\t'   ||
+		c == '\n'   ||
+		c == '\x20' ||
+		c == '\xA0'
+	);
+}
 
 /**
  * This function template transforms utf-8-encoded sequence into sequence of 32-bit integers.
@@ -302,7 +324,6 @@ void replace_in_text_once(
 		position = current_line.find(part, position + n_part.length()); // Находим следующее место, где встречается эта последовательность
 	}
 }
-
 
 } // Namespace LSCL
 

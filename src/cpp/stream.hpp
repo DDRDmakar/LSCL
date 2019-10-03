@@ -54,7 +54,7 @@ public:
 	char peek_next_char(void) const;
 	void eat_next_char(void)  const;
 	
-	bool skip_spaces(void) const;
+	char skip_spaces(void) const;
 	size_t get_line(void) const;
 	
 	operator bool() const;
@@ -67,7 +67,7 @@ private:
 	mutable size_t
 		n_prefetched_bytes_available,
 		n_prefetched_bytes_used;
-	mutable unsigned int line; // Line counter
+	mutable size_t line; // Line counter
 };
 
 } // Namespace Nodebuilder

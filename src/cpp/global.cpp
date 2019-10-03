@@ -141,4 +141,17 @@ inline std::string from_safestring(std::string current_line)
 	return wstring_to_string(from_safestring(string_to_wstring(current_line)));
 }
 
+std::string get_nodetype_name(LSCL::NODETYPE type)
+{
+	switch (type)
+	{
+		case NODETYPE_LINK: { return "LINK"; break; }
+		case NODETYPE_NONE: { return "NONE"; break; }
+		case NODETYPE_MAP: { return "MAP"; break; }
+		case NODETYPE_LIST: { return "LIST"; break; }
+		case NODETYPE_SCALAR: { return "SCALAR"; break; }
+		default: return std::to_string(type);
+	}
+}
+
 } // Namespace LSCL

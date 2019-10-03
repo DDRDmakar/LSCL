@@ -83,7 +83,7 @@ namespace Test
 	tb->add(                                                                             \
 		(t1) == (t2),                                                                    \
 		(name),                                                                          \
-		"Type is " + std::to_string(t1) + ", but " + std::to_string(t2) + "is expected"  \
+		"Type is " + std::to_string(t1) + ", but " + std::to_string(t2) + " is expected" \
 	)                                                                                    \
 	
 	
@@ -400,7 +400,6 @@ namespace Test
 				CMP_TYPE(builder.links_["link"]->type, LSCL::NODETYPE_SCALAR, "Linked node type");
 			}
 			
-			/*
 			{
 				// link creation (single word)
 				std::string s = 
@@ -408,32 +407,28 @@ namespace Test
 				"	az: &link val, \n"
 				"	as : *link,    \n"
 				"	as2: *\"link\",\n"
-				"	as3: &<link> , \n"
+				"	as3: *<link> , \n"
 				"	dedy: vaevale  \n"
+				"	<ke>: \"ge\""
 				"}\n";
+				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
-				if (builder.root->values_map.size() != 3) return false;
-				
+				CMP_NUM(builder.root->values_map.size(), 5, "Map size");
 				std::string s2 = builder.root->values_map["az"].get<std::string>();
-				if (strcmp(s2.c_str(), "val") != 0) return false;
-				if (builder.links_.size() != 1) return false;
-				if (builder.links_["link"]->type != LSCL::NODETYPE_SCALAR) return false;
-				
-				if (builder.root->values_map["as"].type != LSCL::NODETYPE_LINK) return false;
+				CMP_TEXT(s2, "val", "az value");
+				CMP_NUM(builder.links_.size(), 1, "Created links number");
+				CMP_TYPE(builder.links_["link"]->type, LSCL::NODETYPE_SCALAR, "linked node type");
+				CMP_TYPE(builder.root->values_map["as"].type, LSCL::NODETYPE_LINK, "linking node type");
 				s2 = builder.root->values_map["as"].linked->get<std::string>();
-				if (strcmp(s2.c_str(), "val") != 0) return false;
+				CMP_TEXT(s2, "val", "as node value");
+				CMP_TYPE(builder.root->values_map["as2"].type, LSCL::NODETYPE_LINK, "as2 node type");
 				
-				if (builder.root->values_map["as2"].type != LSCL::NODETYPE_LINK) return false;
-				s2 = builder.root->values_map["as"].linked->get<std::string>();
-				if (strcmp(s2.c_str(), "val") != 0) return false;
+				CMP_TYPE(builder.root->values_map["as3"].type, LSCL::NODETYPE_LINK, "as3 type");
 				
-				if (builder.root->values_map["as3"].type != LSCL::NODETYPE_LINK) return false;
-				s2 = builder.root->values_map["as"].linked->get<std::string>();
-				if (strcmp(s2.c_str(), "val") != 0) return false;
-				
+				s2 = builder.root->values_map["ke"].get<std::string>();
+				CMP_TEXT(s2, "ge", "ke value");
 			}
-			*/
 		}
 		catch (LSCL::Exception::Exception_nodebuilder &e)
 		{

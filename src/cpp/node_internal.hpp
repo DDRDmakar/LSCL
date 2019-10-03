@@ -30,15 +30,6 @@
 namespace LSCL
 {
 	
-	enum NODETYPE
-	{
-		NODETYPE_NONE   = 0,
-		NODETYPE_MAP    = 1,
-		NODETYPE_LIST   = 2,
-		NODETYPE_SCALAR = 3,
-		NODETYPE_LINK   = 4
-	};
-	
 	/*
 	 * CHAR_BIT    :   8
 	 * CHAR_MAX    :   127

@@ -18,6 +18,7 @@
 
 #include "stream.hpp"
 #include "defines.hpp"
+#include "global.hpp"
 
 namespace LSCL
 {
@@ -30,29 +31,17 @@ namespace Nodebuilder
  * Pops characters one by one, until non-spacing character is reached.
  * returns TRUE if function skips newline character.
  */
-bool Stream::skip_spaces(void) const
+char Stream::skip_spaces(void) const
 {
-	bool newline_skipped = false;
-	char current_character = peek_next_char();
+	register char current_character = peek_next_char();
 	
-	while
-	(
-		current_character != EOF && 
-		(
-			current_character == ' '    ||
-			current_character == '\t'   ||
-			current_character == '\n'   ||
-			current_character == '\x20' ||
-			current_character == '\xA0'
-		)
-	)
+	while (is_spacer(current_character))
 	{
-		if (current_character == '\n') newline_skipped = true;
 		eat_next_char();
 		current_character = peek_next_char();
 	}
 	
-	return newline_skipped;
+	return current_character;
 }
 
 /**
@@ -125,8 +114,8 @@ char Stream::peek_next_char(void) const
  */
 void Stream::eat_next_char(void) const
 {
-	if (setup_rx_buffer()) ++n_prefetched_bytes_used;
 	if (rx_buffer[n_prefetched_bytes_used] == '\n') ++line;
+	if (setup_rx_buffer()) ++n_prefetched_bytes_used;
 }
 
 /**

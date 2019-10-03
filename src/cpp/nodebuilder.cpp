@@ -88,12 +88,25 @@ inline bool is_scalar_terminating_symbol(const char c)
 	);
 }
 
-
-inline bool is_spacer(const char c)
+inline void print_s_pair(std::pair<std::string, bool> s_pair)
 {
-	return (c == ' ' || c == '\n' || c == '\t');
+	std::cout << "Scalar |" << s_pair.first << "|, preserve_char = " << s_pair.second << std::endl;
 }
 
+
+std::string get_nodeway_name(LSCL::Nodebuilder::Builder::NODEWAY type)
+{
+	switch (type)
+	{
+		case Builder::NODEWAY_LIST:       { return "LIST";       break; }
+		case Builder::NODEWAY_MAP:        { return "MAP";        break; }
+		case Builder::NODEWAY_SCALAR:     { return "SCALAR";     break; }
+		case Builder::NODEWAY_COMMA_LIST: { return "COMMA_LIST"; break; }
+		case Builder::NODEWAY_COMMA_MAP:  { return "COMMA_MAP";  break; }
+		case Builder::NODEWAY_KEY:        { return "KEY";        break; }
+		default: return std::to_string(type);
+	}
+}
 
 /**
  * Class constructor.
@@ -150,8 +163,12 @@ void Builder::build_tree(void)
 	else
 	{
 		// Just one scalar in file
-		std::string current_scalar = process_scalar(); // Get scalar string
-		c = ss_.peek_next_char();
+		auto s_pair = process_scalar(); // Get scalar string
+		print_s_pair(s_pair);
+		std::string current_scalar = s_pair.first;
+		ss_.eat_next_char();
+		c = ss_.skip_spaces();
+		std::cout << '|' << c << '|' << std::endl;
 		if (c != EOF && c != '\0') throw LSCL::Exception::Exception_nodebuilder("Incorrect scalar format", filename_, ss_.get_line());
 		root = std::make_shared<Node_internal>(nullptr, current_scalar); // Create scalar at tree root
 		return;
@@ -167,7 +184,7 @@ void Builder::build_tree(void)
 		c = ss_.peek_next_char(); // Get one char from stream
 		const NODEWAY last = nodestack_.top(); // Get type of last 
 #ifdef __DEBUG
-	std::cout << "Parsing type " << last << std::endl;
+	std::cout << "Parsing type " << get_nodeway_name(last) << std::endl;
 #endif
 		switch (c)
 		{
@@ -212,6 +229,7 @@ void Builder::build_tree(void)
 			case ',':
 			{
 				     if (last == NODEWAY_LIST)   nodestack_.push(NODEWAY_COMMA_LIST);
+				else if (last == NODEWAY_COMMA_MAP) { nodestack_.push(NODEWAY_KEY); }
 				else if (last == NODEWAY_MAP)  { nodestack_.push(NODEWAY_COMMA_MAP); nodestack_.push(NODEWAY_KEY); }
 				else if (last != NODEWAY_COMMA_LIST && last != NODEWAY_COMMA_MAP)
 					throw LSCL::Exception::Exception_nodebuilder("Comma appeared in wrong place", filename_, ss_.get_line());
@@ -230,7 +248,7 @@ void Builder::build_tree(void)
 			}
 			case '#':
 			{
-				process_directive(workpoint);
+				// process_directive(workpoint);
 				break;
 			}
 			case '&': // Creating link to object
@@ -240,17 +258,21 @@ void Builder::build_tree(void)
 				c = ss_.peek_next_char();
 				if (c == '<' || c == '\'' || c == '\"')
 				{
-					link_name = process_scalar(); // Get link name as scalar
+					auto s_pair = process_scalar(); // Get link name as scalar
+					link_name = s_pair.first;
+					character_preserved = s_pair.second;
 				}
 				else
 				{
-					link_name = process_single_word(); // Get link name as a single word
+					auto s_pair = process_single_word(); // Get link name as a single word
+					link_name = s_pair.first;
+					character_preserved = s_pair.second;
 					// After word we always should have delimiter (space or line-break)
 					c = ss_.peek_next_char();
-					if (c != ' ' && c != '\n' && c != '\t') throw LSCL::Exception::Exception_nodebuilder("Single word \"" + link_name + "\" is ending with \'" + std::to_string(c) + "\'", filename_, ss_.get_line());
+					if (c != ' ' && c != '\n' && c != '\t') throw LSCL::Exception::Exception_nodebuilder("Link creation (single word) \"" + link_name + "\" is ending with \'" + std::to_string(c) + "\'", filename_, ss_.get_line());
 				}
 				
-				character_preserved = is_scalar_terminating_symbol(ss_.peek_next_char()); // If we need to preserve next character in stream
+				//character_preserved = is_scalar_terminating_symbol(ss_.peek_next_char()); // If we need to preserve next character in stream
 				link_creation = true;
 #ifdef __DEBUG
 				std::cout << "Got link name: |" << link_name << '|' << std::endl;
@@ -260,11 +282,21 @@ void Builder::build_tree(void)
 			case '*': // Referencing by link
 			{
 				ss_.eat_next_char(); // Eat asterisk
+				c = ss_.skip_spaces();
 				std::string linked_node_name;
-				
-				if (c == '<' || c == '\'' || c == '\"') linked_node_name = process_scalar(); // Get link name as scalar
-				else linked_node_name = process_single_word(); // Get link name as a single word
-				character_preserved = is_scalar_terminating_symbol(ss_.peek_next_char()); ; // If we need to preserve next character in stream
+				if (c == '<' || c == '\'' || c == '\"')
+				{
+					auto s_pair = process_scalar(); // Get link name as scalar
+					linked_node_name = s_pair.first;
+					character_preserved = s_pair.second;
+				}
+				else 
+				{
+					auto s_pair = process_single_word(); // Get link name as a single word
+					linked_node_name = s_pair.first;
+					character_preserved = s_pair.second;
+				}
+				//character_preserved = is_scalar_terminating_symbol(ss_.peek_next_char()); ; // If we need to preserve next character in stream
 				
 				// Save link with its name
 				Node_internal *node_to_work_with;
@@ -302,12 +334,11 @@ void Builder::build_tree(void)
 			}
 			default:
 			{
-				std::string current_scalar = process_scalar(); // Get scalar string
-#ifdef __DEBUG
-				std::cout << "Got scalar: |" << current_scalar << '|' << std::endl;
-#endif
+				auto s_pair = process_scalar(); // Get scalar string
+				std::string current_scalar = s_pair.first;
+				character_preserved = s_pair.second;
 				// If we need to preserve next character in stream
-				character_preserved = is_scalar_terminating_symbol(ss_.peek_next_char()); ;
+				// character_preserved = is_scalar_terminating_symbol(ss_.peek_next_char());
 				
 				switch (last)
 				{
@@ -353,9 +384,19 @@ void Builder::build_tree(void)
 			} // End default
 		} // End case
 		
+		const size_t current_line = ss_.get_line();
 		if (!character_preserved) ss_.eat_next_char(); // Go to next char
 		else character_preserved = false;
 		ss_.skip_spaces(); // Skip blank space before next trigger
+		if (current_line != ss_.get_line()) // If newline is delimiter
+		{
+			switch (nodestack_.top())
+			{
+				case NODEWAY_LIST: { nodestack_.push(NODEWAY_COMMA_LIST); break; }
+				case NODEWAY_MAP:  { nodestack_.push(NODEWAY_COMMA_MAP);  break; }
+				default: break;
+			}
+		}
 		
 	} // End while
 	
@@ -369,92 +410,113 @@ void Builder::build_tree(void)
 
 
 // Processing scalar value, quoted or not
-std::string Builder::process_scalar(void)
+std::pair<std::string, bool> Builder::process_scalar(void)
 {
 #ifdef __DEBUG
-	std::cout << "Process scalar start" << std::endl;
+	std::cout << "Process scalar start (c = " << std::to_string(ss_.peek_next_char()) << ")" << std::endl;
 #endif
-	std::string answer;
+	std::string accum; // Resulting string
+	bool preserve_char = false; // If we need to preserve current char in stream for the next iteration
 	
-	bool escaped        = false;
-	bool quote_single   = false;
-	bool quote_double   = false;
-	bool skiping_spaces = true;
+	register char c; // Current char
+	bool escaped        = false; // If current character is escaped
+	bool quote          = false; // If scalar is in any quotes
+	bool quote_single   = false; // If scalar is in ' '
+	bool quote_double   = false; // If scalar is in " "
+	bool skiping_spaces = true;  // If we need to skip spaces to the next non-spacer char
 	bool triangle       = false; // Triangle brackets
 	
-	ss_.skip_spaces();
-	register char c = ss_.peek_next_char();
+	c = ss_.skip_spaces();
+	
 	// If function meets triangle bracket in the beginning
 	if (c == '<')
 	{
-		triangle = true; // Flag that we a re preserving \n charactes inside strings
-		ss_.eat_next_char();
+		triangle = true; // Flag that we are preserving \n charactes inside strings
+		ss_.eat_next_char(); // Eat '<'
+		c = ss_.skip_spaces(); // Get next
+	}
+	
+	// If function meets single quote
+	if (c == '\'')
+	{
+		quote = true;
+		quote_single = true;
+		ss_.eat_next_char(); // Eat '
+	}
+	// If function meets double quote
+	else if (c == '\"')
+	{
+		quote = true;
+		quote_double = true;
+		ss_.eat_next_char(); // Eat "
 	}
 	
 	while (c)
 	{
-		c = ss_.peek_next_char();
+		c = ss_.peek_next_char(); // Get next
 		
 		// Skipping blank space before value start and in the beginning
 		// of each line (if it is multiline scalar value)
 		if (skiping_spaces)
 		{
-			while (c == ' ' || c == '\t') c = ss_.pop_next_char();
+			c = ss_.skip_spaces();
+			skiping_spaces = false;
 		}
-		skiping_spaces = false;
 		
-		if (!escaped)
+		if (!escaped) // If current character is not escaped
 		{
-			
 			// If function meets line-break
-			if (c == '\n')
+			if (c == '\n' && !triangle)
 			{
 				// If line-break is inside quotes
 				// (line-break outside quotes is a delimiter in lists and maps)
-				// \n
-				if (triangle) answer.push_back('\n');
+				if (!quote) break;
 				skiping_spaces = true;
-				ss_.eat_next_char();
+				ss_.eat_next_char(); // Eat \n
 				continue;
 			}
 			
 			// If we reached scalar end
 			// If (character is not inside quoted string) and (character is > or terminating)
-			if (!quote_single && !quote_double && (c == '>' || is_scalar_terminating_symbol(c)))
+			if (!quote)
 			{
-				if (!triangle || c == '>') break; // Special symbol stops scalar parsing
-				else throw LSCL::Exception::Exception_nodebuilder("Scalar contains forbidden symbol: \'" + std::to_string(c) + "\' \'" + std::string(1, c) + "\'", filename_, ss_.get_line());
+				if (is_scalar_terminating_symbol(c) || (triangle && c == '>'))
+				{
+					if (triangle && c != '>') throw LSCL::Exception::Exception_nodebuilder("Forbidden symbol \"" + std::to_string(c) + "\" inside triangle brackets", filename_, ss_.get_line());
+					preserve_char = true;
+					break;
+				}
+			}
+			
+			// If function meets double quote
+			if (!quote_single && c == '\"')
+			{
+				preserve_char = !quote_double;
+				break; // scalar end
+			}
+			
+			// If function meets single quote
+			if (!quote_double && c == '\'')
+			{
+				preserve_char = !quote_single;
+				break; // scalar end
 			}
 		}
 		
 		ss_.eat_next_char(); // It is not scalar-terminating symbol, we can destroy symbol in stream
 		
-		// If function meets double quote
-		if (c == '\"' && !escaped && !quote_single)
-		{
-			if (quote_double) break; // scalar end
-			quote_double = true; // Change quotation status
-			continue;
-		}
-		
-		// If function meets single quote
-		if (c == '\'' && !escaped && !quote_double)
-		{
-			if (quote_single) break; // scalar end
-			quote_single = true; // Change quotation status
-			continue;
-		}
-		
 		// Escaped characters
-		if (escaped && !quote_single)
+		if (escaped)
 		{
 			switch (c)
 			{
-				case 'n': { answer.push_back('\n'); break; } // Line-break character
-				case 't': { answer.push_back('\t'); break; } // Tabulator character
-				case 's': { answer.push_back(' ');  break; } // Space
-				case 'r': { answer.push_back('\r'); break; } // Carriage return
-				case 'x': { // Hex representation
+				case 'n': { accum.push_back('\n'); break; } // Line-break character
+				case 't': { accum.push_back('\t'); break; } // Tabulator character
+				case 's': { accum.push_back(' ');  break; } // Space
+				case 'r': { accum.push_back('\r'); break; } // Carriage return
+				case 'x':
+				{
+					// Hex representation
 					std::string current_hex_value;
 					do
 					{
@@ -476,7 +538,7 @@ std::string Builder::process_scalar(void)
 						current_hex_value = uint32_vector_to_string(surrogate_vector);
 						for (char e : current_hex_value)
 						{
-							answer.push_back(e);
+							accum.push_back(e);
 						}
 					}
 					// Else throw exception
@@ -487,13 +549,14 @@ std::string Builder::process_scalar(void)
 				// In all other cases just save escaped character
 				default:
 				{
-					answer.push_back(c);
+					accum.push_back(c);
 					break;
 				}
-			}
+			} // End switch
+			
 			escaped = false; // End escape
 			continue;
-		}
+		} // endif (escaped)
 		
 		// If function meets escaping character
 		// If it's not escaped, then start escape
@@ -505,38 +568,38 @@ std::string Builder::process_scalar(void)
 		// ==== End of escaped characters processing, under it 'ESCAPED' always FALSE
 		
 		// Push current character into collector
-		answer.push_back(c);
+		accum.push_back(c);
+		
 	} // End while
 	
 	// Erase white spaces in the end of unquoted string
-	if (!quote_double && !quote_single)
-		while (answer.back() == ' ' || answer.back() == '\t' || answer.back() == '\n') answer.pop_back();
+	if (!quote) while (is_spacer(accum.back())) accum.pop_back();
 	
 	// Process closing triangle bracket
-	else
-		if (triangle)
-		{
-			ss_.skip_spaces();
-			if (ss_.peek_next_char() == '>') ss_.eat_next_char();
-			else throw LSCL::Exception::Exception_nodebuilder("Opening triangle bracket \"<\" without closing one \">\"", filename_, ss_.get_line());
-		}
+	if (triangle)
+	{
+		if (!preserve_char) ss_.eat_next_char();
+		preserve_char = false;
+		ss_.skip_spaces();
+		if (ss_.peek_next_char() == '>') ss_.eat_next_char();
+		else throw LSCL::Exception::Exception_nodebuilder("Opening triangle bracket \"<\" without closing one \">\"", filename_, ss_.get_line());
+	}
 	
 #ifdef __DEBUG
-	std::cout << "Process scalar end" << std::endl;
+	std::cout << "Process scalar end: |" << accum << '|' << std::endl;
 #endif
-	
-	return answer;
+	return std::make_pair(accum, preserve_char);
 }
 
 
-
 // Processing plain text word without escaped characters quotes, spaces and line-breaks
-std::string Builder::process_single_word(void)
+std::pair<std::string, bool> Builder::process_single_word(void)
 {
 #ifdef __DEBUG
-	std::cout << "Process single word start" << std::endl;
+	std::cout << "Process single word start (c = " << std::to_string(ss_.peek_next_char()) << ")" << std::endl;
 #endif
-	std::string answer;
+	std::string accum;
+	bool preserve_char = false; // If we need to preserve current char in stream for the next iteration
 	
 	ss_.skip_spaces();
 	register char c;
@@ -546,26 +609,28 @@ std::string Builder::process_single_word(void)
 		c = ss_.peek_next_char();
 		
 		// Stop reading word if we meet terminating symbol
-		if ( 
-			c == ' '  || c == '\n' || c == '\t' || c == '\"' || c == '\'' || 
-			c == '<'  || c == '>'  || c == '\\' || is_scalar_terminating_symbol(c)
-		)
+		if (is_spacer(c) || c == '\"' || c == '\'' || c == '<' || c == '>'  || c == '\\')
 		{
+			break;
+		}
+		if (is_scalar_terminating_symbol(c))
+		{
+			preserve_char = true;
 			break;
 		}
 		
 		ss_.eat_next_char(); // It is not scalar-terminating symbol, we can destroy symbol in stream
 		
 		// Push current character into collector
-		answer.push_back(c);
+		accum.push_back(c);
 	}
 	while (c); // End while
 	
 #ifdef __DEBUG
-	std::cout << "Process single word end" << std::endl;
+	std::cout << "Process single word end: |" << accum << '|' << std::endl;
 #endif
 	
-	return answer;
+	return std::make_pair(accum, preserve_char);
 }
 
 
@@ -587,12 +652,12 @@ void Builder::assign_links(void)
 	}
 }
 
-
+/*
 void Builder::process_directive(Node_internal *workpoint) // Processing of directive
 {
 	
 }
-
+*/
 
 } // Namespace Nodebuilder
 

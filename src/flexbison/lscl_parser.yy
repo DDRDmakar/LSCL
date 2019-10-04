@@ -1,3 +1,22 @@
+/*
+ * 
+ * Copyright 2019 Nikita Makarevich
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ */
+
+
 %skeleton "lalr1.cc"
 %require  "3.0"
 %debug 
@@ -6,6 +25,9 @@
 %define parser_class_name {LSCL_Parser}
 
 %code requires {
+
+	#include "node_internal.hpp"
+
 	namespace LSCL {
 		namespace Nodebuilder
 		{
@@ -41,13 +63,23 @@
 	
 }
 
-%define api.value.type variant
 %define parse.assert
 
-%token               END
-%token <std::string> PLAINTEXT
-%token               NEWLINE
-%token               SPACER
+%define api.value.type variant
+//%union {
+//	std::string str;
+//	LSCL::Node_internal node;
+//}
+
+%token                       END
+%token <LSCL::Node_internal> NODE
+%token                       NEWLINE
+%token                       SPACER
+%token <std::string>         SCALAR_PLAINTEXT
+%token <std::string>         SCALAR_DOUBLE_Q
+%token <std::string>         SCALAR_SINGLE_Q
+
+//%type <LSCL::Node_internal> node
 
 %locations
 
@@ -55,7 +87,8 @@
 
 node: lscl_map | lscl_list | scalar ;
 
-lscl_list: '[' lscl_list_body ']' ;
+lscl_list: '[' lscl_list_body ']' {
+};
 
 lscl_list_body
 	: node
@@ -78,14 +111,10 @@ scalar: _scalar | _scalar_angle ;
 _scalar_angle: '<' _scalar '>' ;
 
 _scalar
-	: _scalar_quote_single
-	| _scalar_quote_double
-	| _scalar_unquoted
+	: SCALAR_PLAINTEXT
+	| SCALAR_SINGLE_Q
+	| SCALAR_DOUBLE_Q
 	;
-
-_scalar_quote_single: 'a' ;
-_scalar_quote_double: 'a' ;
-_scalar_unquoted:     'a' ;
 
 /*
 item

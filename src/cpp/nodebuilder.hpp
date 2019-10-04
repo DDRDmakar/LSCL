@@ -25,8 +25,6 @@
 #include <unordered_map>
 #include <memory>
 
-#include "../lscl/lscl.hpp"
-#include "stream.hpp"
 #include "node_internal.hpp"
 
 #include "lscl_scanner.hpp"
@@ -51,38 +49,26 @@ namespace LSCL
 			
 		private:
 			
-			enum NODEWAY
-			{
-				NODEWAY_MAP    = 1,
-				NODEWAY_LIST   = 2,
-				NODEWAY_SCALAR = 3,
-				NODEWAY_KEY,
-				NODEWAY_COMMA_MAP,
-				NODEWAY_COMMA_LIST
-			};
+			LSCL_Parser  *parser_  = nullptr;
+			LSCL_Scanner *scanner_ = nullptr;
 			
 			// Friend function to perform tests
 			friend LSCL::Test::Testdata LSCL::Test::test_builder(void);
-			friend std::string get_nodeway_name(NODEWAY type);
 			
-			Stream ss_;                     // Characters stream to read from
-			std::stack<NODEWAY> nodestack_; // Stack of the hierarchy we are digging into
-			std::string filename_;          // Name of parsed file (or empty if we parse string)
+			Node_internal *workpoint_; // Pointer to current container
+			
+			std::string filename_; // Name of processed file (empty if no file)
 			std::unordered_map<std::string, Node_internal*> links_; // Named links to nodes
 			std::unordered_map<std::string, Node_internal*> linked_nodes_; // Nodes which should be linked by named links
 			
-			std::pair<std::string, bool> process_scalar(void); // Processing of scalar value
-			std::pair<std::string, bool> process_single_word(void); // Processing plain text word without escaped characters quotes, spaces and line-breaks
-			void process_directive(Node_internal *workpoint); // Processing of directive
 			void assign_links(void); // Assign links to link names after all objects are created
-			void build_tree(void);
+			void build_tree(std::istream &input);
+			size_t get_line(void);
 			
 		public:
-			
-			explicit Builder(std::istream& input, const std::string &filename = "");
-			
-			// If the parser has some valid input to be read
-			// explicit operator bool() const;
+			explicit Builder(std::istream& input);
+			explicit Builder(const std::string &filename = "");
+			virtual ~Builder();
 			
 			std::shared_ptr<Node_internal> root; // Root of node tree
 		};

@@ -1,4 +1,24 @@
 %{
+/*
+ * 
+ * Copyright 2019 Nikita Makarevich
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ */
+
+
+
 // C++ string header, for string ops below
 #include <string>
 
@@ -33,8 +53,26 @@ using token = LSCL::Nodebuilder::LSCL_Parser::token;
     yylval = lval;
 %}
 
+"\"((([^\\\"])|(\\[^\"\\])|((\\\\)*(\\\")?))*)\"" {
+	
+	yylval->build<std::string>(yytext);
+	return token::SCALAR_DOUBLE_Q;
+}
+
+"\'((([^\'])|(\'\'))*)\'" {
+	
+	yylval->build<std::string>(yytext);
+	return token::SCALAR_SINGLE_Q;
+}
+
+"(([^\'\"\{\}\[\]\<\>\:/])|(/[^/]))+" {
+	
+	yylval->build<std::string>(yytext);
+	return token::SCALAR_PLAINTEXT;
+}
+
 .           {
-               return yytext[0];
+                return yytext[0];
             }
 %%
 

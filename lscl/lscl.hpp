@@ -22,8 +22,8 @@
 #include <string>
 #include <vector>
 
-#include "../src/cpp/nodebuilder.hpp"
-#include "../src/cpp/global.hpp"
+#include "nodebuilder.hpp"
+#include "global.hpp"
 
 namespace LSCL
 {

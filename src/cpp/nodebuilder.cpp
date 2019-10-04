@@ -23,50 +23,11 @@
 #endif
 
 #include <string>
+#include <fstream>
 
 #include "nodebuilder.hpp"
 #include "exception.hpp"
 #include "global.hpp"
-
-
-// Adding link into links map
-#define LINK_CREATION(x)         \
-	if (link_creation)           \
-	{                            \
-		links_.insert({          \
-			link_name,           \
-			(x)                  \
-		});                      \
-		link_creation = false;   \
-	}                            \
-
-
-// Inserting new empty container to the given workpoint
-#define INSERT_CONTAINER(t, t_name)            \
-	if (last == NODEWAY_COMMA_MAP)             \
-	{                                          \
-		workpoint->values_map.insert(          \
-			{                                  \
-				key,                           \
-				Node_internal((t), workpoint)  \
-			}                                  \
-		);                                               \
-		auto inserted = workpoint->values_map.find(key); \
-		if (inserted == workpoint->values_map.end())     \
-			throw LSCL::Exception::Exception_nodebuilder("Adding " + std::string(t_name) + " into map", filename_, ss_.get_line()); \
-		workpoint = &(inserted->second);                 \
-	}                                                    \
-	else if (last == NODEWAY_COMMA_LIST)                 \
-	{                                                    \
-		workpoint->values_list.push_back(                \
-			Node_internal((t), workpoint)                \
-		);                                               \
-		workpoint = &( workpoint->values_list.back() );  \
-	}                                                    \
-	else throw LSCL::Exception::Exception_nodebuilder("Adding " + std::string(t_name) + " into non-container node", filename_, ss_.get_line()); \
-	                           \
-	LINK_CREATION(workpoint)   \
-	
 
 namespace LSCL
 {
@@ -76,339 +37,83 @@ namespace Nodebuilder
 
 
 
-// If symbol is one of which terminate scalar parsing
-inline bool is_scalar_terminating_symbol(const char c)
-{
-	return (
-		c == '\0' || c == EOF ||
-		c == '['  || c == ']' ||
-		c == '{'  || c == '}' ||
-		c == ':'  || c == '#' ||
-		c == ','
-	);
-}
-
-inline void print_s_pair(std::pair<std::string, bool> s_pair)
-{
-	std::cout << "Scalar |" << s_pair.first << "|, preserve_char = " << s_pair.second << std::endl;
-}
-
-
-std::string get_nodeway_name(LSCL::Nodebuilder::Builder::NODEWAY type)
-{
-	switch (type)
-	{
-		case Builder::NODEWAY_LIST:       { return "LIST";       break; }
-		case Builder::NODEWAY_MAP:        { return "MAP";        break; }
-		case Builder::NODEWAY_SCALAR:     { return "SCALAR";     break; }
-		case Builder::NODEWAY_COMMA_LIST: { return "COMMA_LIST"; break; }
-		case Builder::NODEWAY_COMMA_MAP:  { return "COMMA_MAP";  break; }
-		case Builder::NODEWAY_KEY:        { return "KEY";        break; }
-		default: return std::to_string(type);
-	}
-}
-
 /**
  * Class constructor.
- * Initializes class from input stream,
- * reads first portion of characters into rx buffer
+ * Initializes class from input stream or file
  * 
  * Warning! This is the most critical section, write code as effective as possible.
  * 
  */
-Builder::Builder(std::istream &input, const std::string &filename) :
-	ss_(input),
+
+Builder::Builder(const std::string &filename) :
 	filename_(filename)
 {
-	build_tree();
-	assign_links();
+	if (filename.empty()) throw LSCL::Exception::Exception_nodebuilder("Empty file name is given", filename, get_line());
+	std::ifstream in_file(filename.c_str());
+	if(!in_file.good()) throw LSCL::Exception::Exception_nodebuilder("Error opening file", filename, get_line());
+	build_tree(in_file);
+	return;
 }
 
-
-void Builder::build_tree(void)
+Builder::Builder(std::istream &input)
 {
-#ifdef __DEBUG
-	std::cout << "\nBuilding node start" << std::endl;
-#endif
-	
-	std::string key; // Key for map
-	std::string link_name; // Name of link to be referenced
-	
-	ss_.skip_spaces(); // Go to first non-space symbol
-	
-	// Detecting root type (list or map)
-	const char first_c = ss_.peek_next_char(); // Get first char from stream
-	register char c;
-	bool character_preserved = false; // Flag for cases when functional symbol is eaten by algorithm
-	bool link_creation = false; // If we have to link the following node
-	
-	if (first_c == EOF || first_c == '\0') // If no structure in file
+	if(!input.good() || input.eof()) return;
+	else build_tree(input);
+}
+
+
+/**
+ * Class destructor
+ * 
+ */
+Builder::~Builder()
+{
+   delete(scanner_);
+   scanner_ = nullptr;
+   delete(parser_);
+   parser_ = nullptr;
+}
+
+
+/**
+ * This function uses flex-bison parser to build tree
+ * 
+ */
+void Builder::build_tree(std::istream &input)
+{
+	delete(scanner_);
+	try
 	{
-		root = std::make_shared<Node_internal>(NODETYPE_NONE, nullptr);
-		return;
+		scanner_ = new LSCL_Scanner(&input);
 	}
-	else if (first_c == '{') // If file is map
+	catch (std::bad_alloc &ba)
 	{
-		root = std::make_shared<Node_internal>(NODETYPE_MAP, nullptr); // Create map at tree root
-		nodestack_.push(NODEWAY_MAP); // Map into stack
-		nodestack_.push(NODEWAY_COMMA_MAP); // Push comma such if it was comma first in the map
-		nodestack_.push(NODEWAY_KEY); // Key into stack (to read key before value)
-	}
-	else if (first_c == '[') // If file is list
-	{
-		root = std::make_shared<Node_internal>(NODETYPE_LIST, nullptr); // Create list at tree root
-		nodestack_.push(NODEWAY_LIST); // List into stack
-		nodestack_.push(NODEWAY_COMMA_LIST); // Push comma such if it was comma first in the list
-	}
-	else
-	{
-		// Just one scalar in file
-		auto s_pair = process_scalar(); // Get scalar string
-		print_s_pair(s_pair);
-		std::string current_scalar = s_pair.first;
-		ss_.eat_next_char();
-		c = ss_.skip_spaces();
-		std::cout << '|' << c << '|' << std::endl;
-		if (c != EOF && c != '\0') throw LSCL::Exception::Exception_nodebuilder("Incorrect scalar format", filename_, ss_.get_line());
-		root = std::make_shared<Node_internal>(nullptr, current_scalar); // Create scalar at tree root
-		return;
+		throw LSCL::Exception::Exception_nodebuilder("Error to allocate memory for scanner: (" + std::string(ba.what()) + ")");
 	}
 	
-	ss_.eat_next_char();
-	ss_.skip_spaces();
-	
-	Node_internal *workpoint = root.get(); // Pointer to current workpoint (where structure is parsed)
-	
-	while (ss_ && !nodestack_.empty() && workpoint)
+	delete(parser_); 
+	try
 	{
-		c = ss_.peek_next_char(); // Get one char from stream
-		const NODEWAY last = nodestack_.top(); // Get type of last 
-#ifdef __DEBUG
-	std::cout << "Parsing type " << get_nodeway_name(last) << std::endl;
-#endif
-		switch (c)
-		{
-			case '{':
-			{
-				nodestack_.push(NODEWAY_MAP); // Map into stack
-				INSERT_CONTAINER(NODETYPE_MAP, "map");
-				nodestack_.push(NODEWAY_COMMA_MAP); // Push comma such if it was comma first in the map
-				nodestack_.push(NODEWAY_KEY); // Key into stack (to read key before value)
-				
-				break;
-			}
-			case '}':
-			{
-				if (last             == NODEWAY_KEY)       nodestack_.pop(); // Map end
-				if (nodestack_.top() == NODEWAY_COMMA_MAP) nodestack_.pop();
-				if (nodestack_.top() == NODEWAY_MAP)       nodestack_.pop();
-				else throw LSCL::Exception::Exception_nodebuilder("\'}\' bracket appeared in wrong place", filename_, ss_.get_line());
-				
-				workpoint = workpoint->parent;
-				
-				break;
-			}
-			case '[':
-			{
-				nodestack_.push(NODEWAY_LIST); // List into stack
-				INSERT_CONTAINER(NODETYPE_LIST, "list");
-				nodestack_.push(NODEWAY_COMMA_LIST); // Push comma such if it was comma first in the list
-				
-				break;
-			}
-			case ']':
-			{
-				if (last             == NODEWAY_COMMA_LIST) nodestack_.pop(); // List end
-				if (nodestack_.top() == NODEWAY_LIST)       nodestack_.pop();
-				else throw LSCL::Exception::Exception_nodebuilder("\']\' bracket appeared in wrong place", filename_, ss_.get_line());
-				
-				workpoint = workpoint->parent;
-				
-				break;
-			}
-			case ',':
-			{
-				     if (last == NODEWAY_LIST)   nodestack_.push(NODEWAY_COMMA_LIST);
-				else if (last == NODEWAY_COMMA_MAP) { nodestack_.push(NODEWAY_KEY); }
-				else if (last == NODEWAY_MAP)  { nodestack_.push(NODEWAY_COMMA_MAP); nodestack_.push(NODEWAY_KEY); }
-				else if (last != NODEWAY_COMMA_LIST && last != NODEWAY_COMMA_MAP)
-					throw LSCL::Exception::Exception_nodebuilder("Comma appeared in wrong place", filename_, ss_.get_line());
-				
-#ifdef __DEBUG
-				std::cout << "Comma" << std::endl;
-#endif
-				
-				break;
-			}
-			case ':':
-			{
-				if (last == NODEWAY_KEY) throw LSCL::Exception::Exception_nodebuilder("No key before key:value delimiter \':\'", filename_, ss_.get_line());
-				if (last != NODEWAY_COMMA_MAP) throw LSCL::Exception::Exception_nodebuilder("Key:value delimiter \':\' in the wrong place", filename_, ss_.get_line());
-				break;
-			}
-			case '#':
-			{
-				// process_directive(workpoint);
-				break;
-			}
-			case '&': // Creating link to object
-			{
-				ss_.eat_next_char(); // Eat ampersand
-				ss_.skip_spaces();
-				c = ss_.peek_next_char();
-				if (c == '<' || c == '\'' || c == '\"')
-				{
-					auto s_pair = process_scalar(); // Get link name as scalar
-					link_name = s_pair.first;
-					character_preserved = s_pair.second;
-				}
-				else
-				{
-					auto s_pair = process_single_word(); // Get link name as a single word
-					link_name = s_pair.first;
-					character_preserved = s_pair.second;
-					// After word we always should have delimiter (space or line-break)
-					c = ss_.peek_next_char();
-					if (c != ' ' && c != '\n' && c != '\t') throw LSCL::Exception::Exception_nodebuilder("Link creation (single word) \"" + link_name + "\" is ending with \'" + std::to_string(c) + "\'", filename_, ss_.get_line());
-				}
-				
-				//character_preserved = is_scalar_terminating_symbol(ss_.peek_next_char()); // If we need to preserve next character in stream
-				link_creation = true;
-#ifdef __DEBUG
-				std::cout << "Got link name: |" << link_name << '|' << std::endl;
-#endif
-				break;
-			}
-			case '*': // Referencing by link
-			{
-				ss_.eat_next_char(); // Eat asterisk
-				c = ss_.skip_spaces();
-				std::string linked_node_name;
-				if (c == '<' || c == '\'' || c == '\"')
-				{
-					auto s_pair = process_scalar(); // Get link name as scalar
-					linked_node_name = s_pair.first;
-					character_preserved = s_pair.second;
-				}
-				else 
-				{
-					auto s_pair = process_single_word(); // Get link name as a single word
-					linked_node_name = s_pair.first;
-					character_preserved = s_pair.second;
-				}
-				//character_preserved = is_scalar_terminating_symbol(ss_.peek_next_char()); ; // If we need to preserve next character in stream
-				
-				// Save link with its name
-				Node_internal *node_to_work_with;
-				// If link is value in key-value pair
-				if (last == NODEWAY_COMMA_MAP)
-				{
-					// Create link node
-					workpoint->values_map.insert({
-						key,
-						Node_internal(NODETYPE_LINK, workpoint)
-					});
-					node_to_work_with = &workpoint->values_map[key];
-				}
-				// If link is element of list
-				else if (last == NODEWAY_COMMA_LIST)
-				{
-					// Create link node
-					workpoint->values_list.push_back(
-						Node_internal(NODETYPE_LINK, workpoint)
-					);
-					node_to_work_with = &workpoint->values_list.back();
-				}
-				
-				// Save link to this scalar into links map, if needed
-				LINK_CREATION(node_to_work_with);
-				
-				nodestack_.pop(); // Pop comma_list or comma_map nodeway flag
-				
-				linked_nodes_.insert({
-					linked_node_name,
-					node_to_work_with
-				});
-				
-				break;
-			}
-			default:
-			{
-				auto s_pair = process_scalar(); // Get scalar string
-				std::string current_scalar = s_pair.first;
-				character_preserved = s_pair.second;
-				// If we need to preserve next character in stream
-				// character_preserved = is_scalar_terminating_symbol(ss_.peek_next_char());
-				
-				switch (last)
-				{
-					case NODEWAY_KEY:
-					{
-						key = current_scalar;
-						nodestack_.pop(); // Pop key nodeway flag
-						break;
-					}
-					case NODEWAY_COMMA_MAP:
-					{
-						// Insert new scalar into map
-						workpoint->values_map.insert({
-							key,
-							Node_internal(workpoint, current_scalar)
-						});
-						// Save link to this scalar into links map
-						LINK_CREATION(&workpoint->values_map[key]);
-						
-						nodestack_.pop(); // Pop comma_map nodeway flag
-						break;
-					}
-					case NODEWAY_COMMA_LIST:
-					{
-						// Insert new scalar into list
-						workpoint->values_list.push_back(Node_internal(workpoint, current_scalar));
-						nodestack_.pop(); // Pop comma_list nodeway flag
-						// Save link to this scalar into links map
-						LINK_CREATION(&workpoint->values_list.back());
-						
-						break;
-					}
-					case NODEWAY_MAP: // FALLTHGOUGH
-					case NODEWAY_LIST:
-					{
-						throw LSCL::Exception::Exception_nodebuilder("Nodes in map or list are not comma-separated", filename_, ss_.get_line());
-						break;
-					}
-					
-					default: { throw LSCL::Exception::Exception_nodebuilder("Trying to insert scalar into wrong container", filename_, ss_.get_line()); break; }
-				}
-				
-			} // End default
-		} // End case
-		
-		const size_t current_line = ss_.get_line();
-		if (!character_preserved) ss_.eat_next_char(); // Go to next char
-		else character_preserved = false;
-		ss_.skip_spaces(); // Skip blank space before next trigger
-		if (current_line != ss_.get_line()) // If newline is delimiter
-		{
-			switch (nodestack_.top())
-			{
-				case NODEWAY_LIST: { nodestack_.push(NODEWAY_COMMA_LIST); break; }
-				case NODEWAY_MAP:  { nodestack_.push(NODEWAY_COMMA_MAP);  break; }
-				default: break;
-			}
-		}
-		
-	} // End while
+		parser_ = new LSCL_Parser(
+			*scanner_, // scanner 
+			*this     // builder
+		);
+	}
+	catch (std::bad_alloc &ba)
+	{
+		throw LSCL::Exception::Exception_nodebuilder("Error to allocate memory for parser: (" + std::string(ba.what()) + ")");
+	}
 	
-#ifdef __DEBUG
-	std::cout << "Building node end" << std::endl;
-#endif
+	if (parser_->parse() != 0)
+	{
+		throw LSCL::Exception::Exception_nodebuilder("Parser failed");
+	}
 }
 
 
 
 
-
+/*
 // Processing scalar value, quoted or not
 std::pair<std::string, bool> Builder::process_scalar(void)
 {
@@ -590,8 +295,10 @@ std::pair<std::string, bool> Builder::process_scalar(void)
 #endif
 	return std::make_pair(accum, preserve_char);
 }
+*/
 
 
+/*
 // Processing plain text word without escaped characters quotes, spaces and line-breaks
 std::pair<std::string, bool> Builder::process_single_word(void)
 {
@@ -632,7 +339,7 @@ std::pair<std::string, bool> Builder::process_single_word(void)
 	
 	return std::make_pair(accum, preserve_char);
 }
-
+*/
 
 
 void Builder::assign_links(void)
@@ -647,17 +354,11 @@ void Builder::assign_links(void)
 			{
 				e.second->linked = existing_link->second;
 			}
-			else throw LSCL::Exception::Exception_nodebuilder("Using undefined link \"" + e.first + "\"", filename_, ss_.get_line());
+			else throw LSCL::Exception::Exception_nodebuilder("Using undefined link \"" + e.first + "\"", filename_, get_line());
 		}
 	}
 }
 
-/*
-void Builder::process_directive(Node_internal *workpoint) // Processing of directive
-{
-	
-}
-*/
 
 } // Namespace Nodebuilder
 

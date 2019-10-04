@@ -53,7 +53,6 @@ ADD_FLEX_BISON_DEPENDENCY(lscl_lexer lscl_parser)
 include(GNUInstallDirs)
 
 set( LSCL_SOURCES
-	src/cpp/lscl.cpp
 	src/cpp/nodebuilder.cpp
 	src/cpp/stream.cpp
 	src/cpp/global.cpp
@@ -64,6 +63,7 @@ set( LSCL_SOURCES
 )
 
 set( LSCL_HEADERS
+	lscl/lscl.hpp
 	src/cpp/defines.hpp
 	src/cpp/nodebuilder.hpp
 	src/cpp/stream.hpp

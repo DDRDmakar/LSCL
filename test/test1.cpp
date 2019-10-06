@@ -161,9 +161,10 @@ TEST_CASE( "get<> method", "[nodes]" )
 	REQUIRE(n.get<long double>() -  (long double)1.457e-30 < (long double)1e-35);
 }
 
-/*
+
 TEST_CASE( "Building nodes from text", "[nodebuilder]" )
 {
+	std::cout << "==============\n";
 	LSCL::Test::Testdata data = LSCL::Test::test_builder();
 	bool block_ok = true;
 	for (auto &tb : data.testblocks)
@@ -186,4 +187,6 @@ TEST_CASE( "Building nodes from text", "[nodebuilder]" )
 	std::cout << "Nodebuilder testing finished (" << data.testblocks.size() << " testblocks OK)" << std::endl;
 	
 }
-*/
+
+
+

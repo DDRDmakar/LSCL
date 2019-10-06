@@ -61,6 +61,14 @@
 	#undef  yylex
 	#define yylex scanner.yylex
 	
+	#define INSERT_SCALAR_INTO_LIST(nod)                                       \
+		if (nod.type == NODETYPE_SCALAR)                                       \
+		{                                                                      \
+			builder.workpoint->values_list.push_back(nod);                     \
+			builder.workpoint->values_list.back().parent = builder.workpoint;  \
+		}                                                                      \
+	
+	
 }
 
 %define parse.assert
@@ -79,41 +87,97 @@
 %token <std::string>         SCALAR_DOUBLE_Q
 %token <std::string>         SCALAR_SINGLE_Q
 
-%type  <std::string>      scalar
+%type  <LSCL::Node_internal>      scalar
+%type  <LSCL::Node_internal>      node
+%type  <LSCL::Node_internal>      node_2
 
 %locations
 
 %%
 
 // Whole file could be empty or contain valid node
-file: /*empty*/ | node ;
+file
+	: node    { std::cout << "file (node)\n"; }
+	| %empty  {
+		
+		std::cout << "file (empty)\n";
+		builder.root_created = true;
+		builder.root = std::make_shared<Node_internal>(NODETYPE_NONE, nullptr); // NONE node on the tree root
+		builder.workpoint = builder.root.get();
+	}
+	;
+	
 
 node
-	: node_2
+	: node_2 { std::cout << "node\n"; $$ = $1; }
 	| node '+' node_2
 	;
 
 node_2
-	: lscl_map 
-	| lscl_list 
-	| scalar 
+	: lscl_map { $$ = Node_internal(NODETYPE_NONE); }
+	| lscl_list { std::cout << "node_2: list\n"; $$ = Node_internal(NODETYPE_NONE); }
+	| scalar {
+		std::cout << "node_2: scalar\n";
+		// If file contains only one scalar
+		if (!builder.root_created)
+		{
+			builder.root_created = true;
+			std::cout << "File contains scalar - creating it" << std::endl;
+			builder.root = std::make_shared<LSCL::Node_internal>($1); // Create scalar at tree root
+			builder.workpoint = builder.root.get();
+			$$ = Node_internal(NODETYPE_NONE);
+		}
+		$$ = $1;
+	}
 	;
 
-lscl_list: '[' lscl_list_body ']' ;
+open_square: '[' {
+	
+	if (!builder.root_created)
+	{
+		builder.root_created = true;
+		std::cout << "Beginning of list - creating list at tree root" << std::endl;
+		builder.root = std::make_shared<LSCL::Node_internal>(LSCL::NODETYPE_LIST, nullptr); // Create list at tree root
+		builder.workpoint = builder.root.get();
+	}
+	else
+	{
+		
+	}
+	builder.nodestack.push(NODEWAY_LIST);
+};
+
+lscl_list: open_square lscl_list_body ']' { std::cout << "lscl_list\n"; } ;
 
 lscl_list_body
-	: /*empty*/
-	| node
-	| lscl_list_body ',' node
-	| lscl_list_body '\n' node
+	: %empty { std::cout << "lscl_list_body: empty\n"; }
+	| node   {
+		std::cout << "lscl_list_body: single node\n";
+		INSERT_SCALAR_INTO_LIST($1);
+	}
+	| lscl_list_body ',' node  { std::cout << "lscl_list_body: comma-repeated\n"; }
+	| lscl_list_body '\n' node { std::cout << "lscl_list_body: newline-repeated\n"; }
 	;
 
-lscl_map: '{' lscl_map_body '}' ;
+open_curved: '{' {
+	
+	if (!builder.root_created)
+	{
+		builder.root_created = true;
+		std::cout << "Beginning of map - creating map at tree root" << std::endl;
+		builder.root = std::make_shared<LSCL::Node_internal>(NODETYPE_MAP, nullptr); // Create map at tree root
+		builder.workpoint = builder.root.get();
+	}
+	builder.nodestack.push(NODEWAY_LIST);
+};
+
+
+lscl_map: open_curved lscl_map_body '}' ;
 
 kv_pair: scalar ':' node ;
 
 lscl_map_body
-	: /*empty*/
+	: %empty
 	| kv_pair
 	| lscl_map_body ',' kv_pair
 	| lscl_map_body '\n' kv_pair
@@ -121,22 +185,40 @@ lscl_map_body
 
 scalar
 	: SCALAR_PLAINTEXT {
-		$$ = LSCL::Nodebuilder::process_scalar_plaintext($1, false);
+		$$ = LSCL::Node_internal(
+			nullptr,
+			process_scalar_plaintext($1, false)
+		);
 	}
 	| '<' SCALAR_PLAINTEXT '>' {
-		$$ = LSCL::Nodebuilder::process_scalar_plaintext($2, true);
+		$$ = LSCL::Node_internal(
+			nullptr,
+			process_scalar_plaintext($2, true)
+		);
 	}
 	| SCALAR_SINGLE_Q {
-		$$ = LSCL::Nodebuilder::process_scalar_quotes_single($1, false);
+		$$ = Node_internal(
+			nullptr,
+			process_scalar_quotes_single($1, false)
+		);
 	}
 	| '<' SCALAR_SINGLE_Q '>' {
-		$$ = LSCL::Nodebuilder::process_scalar_quotes_single($2, true);
+		$$ = Node_internal(
+			nullptr,
+			process_scalar_quotes_single($2, true)
+		);
 	}
 	| SCALAR_DOUBLE_Q {
-		$$ = LSCL::Nodebuilder::process_scalar_quotes_double($1, false);
+		$$ = Node_internal(
+			nullptr,
+			process_scalar_quotes_double($1, false)
+		);
 	}
 	| '<' SCALAR_DOUBLE_Q '>' {
-		$$ = LSCL::Nodebuilder::process_scalar_quotes_double($2, true);
+		$$ = Node_internal(
+			nullptr,
+			process_scalar_quotes_double($2, true)
+		);
 	}
 	;
 

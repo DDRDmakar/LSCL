@@ -110,10 +110,10 @@ namespace LSCL
 		Node_internal *parent;
 		NODETYPE type;
 		friend class Nodebuilder::Builder;
-		std::string value; // SCALAR: scalar value
-		std::vector<LSCL::Node_internal> values_list; // LIST: list of values
+		std::string value;                               // SCALAR: scalar value
+		std::vector<LSCL::Node_internal>    values_list; // LIST: list of values
 		std::map<std::string, Node_internal> values_map; // MAP: map of values
-		Node_internal *linked; // Pointer to linked node 
+		Node_internal *linked;                           // Pointer to linked node 
 		
 		// Default constructor
 		Node_internal(void);
@@ -140,11 +140,13 @@ namespace LSCL
 		
 		virtual ~Node_internal(void);
 		
-		//virtual NODETYPE get_type(void) const;
 		bool is(NODETYPE nodetype) const;
 		
 		template <typename T>
 		T get(void) const;
+		
+		Node_internal* insert_into_list(const Node_internal &node);
+		Node_internal* insert_into_map(const std::string &key, const Node_internal &node);
 		
 		size_t size(void) const;
 	};

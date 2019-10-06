@@ -67,7 +67,8 @@ namespace Test
 		std::string(s1).compare(s2) == 0,                              \
 		(name),                                                        \
 		"Value is |" + (s1) + "|, but |" + (s2) + "| is expected"      \
-	)                                                                  \
+	);                                                                 \
+	if (!tb->testcases.back().passed) goto endtest;                    \
 	
 	
 // S1 - current, S2 - expected
@@ -76,7 +77,8 @@ namespace Test
 		(n1) == (n2),                                                                      \
 		(name),                                                                            \
 		"Value is " + std::to_string(n1) + ", but " + std::to_string(n2) + " is expected"  \
-	)                                                                                      \
+	);                                                                                     \
+	if (!tb->testcases.back().passed) goto endtest;                                        \
 	
 	
 #define CMP_TYPE(t1, t2, name)                                                           \
@@ -84,7 +86,16 @@ namespace Test
 		(t1) == (t2),                                                                    \
 		(name),                                                                          \
 		"Type is " + std::to_string(t1) + ", but " + std::to_string(t2) + " is expected" \
-	)                                                                                    \
+	);                                                                                   \
+	if (!tb->testcases.back().passed) goto endtest;                                      \
+	
+#define TEST_BOOL(cond, name)  \
+	tb->add(                   \
+		(cond),                \
+		(name),                \
+		""                     \
+	);                         \
+	if (!(cond)) goto endtest; \
 	
 	
 	
@@ -94,17 +105,18 @@ namespace Test
 		Testblock *tb;
 		
 		try
-		{/*
+		{
 			{
 				// Single list
 				std::string s = "[abcdefg]";
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
+				TEST_BOOL(builder.root != nullptr, "Root is NULL");
 				CMP_NUM(builder.root->values_list.size(), 1, "List size");
 				std::string s2 = builder.root->values_list[0].get<std::string>();
 				CMP_TEXT(s2, "abcdefg", "List contents");
-			}
+			}/*
 			{
 				// Single map
 				std::string s = "{key: val}";
@@ -158,7 +170,7 @@ namespace Test
 				CMP_TEXT(s2, "val валъ", "First value in map");
 				s2 = builder.root->values_map.find("key2")->second.get<std::string>();
 				CMP_TEXT(s2, "val2\n\t", "Second value in map");
-			}
+			}*/
 			
 			
 			
@@ -200,7 +212,7 @@ namespace Test
 			
 			
 			
-			
+			/*
 			{
 				// Scalar
 				std::string s = "aaaa";
@@ -442,6 +454,7 @@ namespace Test
 			tb->add(false, "EXCEPTION", e.what());
 		}
 		
+		endtest:   ;
 		return data;
 	}
 	

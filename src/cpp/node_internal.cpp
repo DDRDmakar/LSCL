@@ -16,7 +16,7 @@
  * 
  */
 
-#include <type_traits>
+#include <stdarg.h>
 
 #include "node_internal.hpp"
 
@@ -100,7 +100,7 @@ namespace LSCL
 	{
 	}
 	
-	//=====[ N O D E ]=====//
+	//=====[ M E T H O D S ]=====//
 	
 	size_t Node_internal::size(void) const
 	{
@@ -113,5 +113,28 @@ namespace LSCL
 	}
 	
 	bool Node_internal::is(NODETYPE nodetype) const { return type == nodetype; }
+	
+	Node_internal* Node_internal::insert_into_list(const Node_internal &node)
+	{
+		if (type != NODETYPE_LIST) throw LSCL::Exception::Exception_nodebuilder("Called insert_into_list() method on non-list node");
+		
+		values_list.push_back(node);
+		return &( values_list.back() );
+	}
+	
+	Node_internal* Node_internal::insert_into_map(const std::string &key, const Node_internal &node)
+	{
+		if (type != NODETYPE_MAP) throw LSCL::Exception::Exception_nodebuilder("Called insert_into_map() method on non-map node");
+		
+		values_map.insert(
+			{
+				key,
+				node
+			}
+		);
+		auto inserted = values_map.find(key);
+		if (inserted == values_map.end()) return nullptr;
+		else return &( inserted->second );
+	}
 	
 } // Namespace LSCL

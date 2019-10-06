@@ -77,7 +77,7 @@ using token = LSCL::Nodebuilder::LSCL_Parser::token;
 }
 
 . {
-	std::cout << "levak: |" << yytext << '|' << std::endl;
+	std::cout << "char: " << yytext << std::endl;
 	return yytext[0];
 }
 

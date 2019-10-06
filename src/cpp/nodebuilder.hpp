@@ -40,6 +40,16 @@ namespace LSCL
 	namespace Nodebuilder
 	{
 		
+		enum NODEWAY
+		{
+			NODEWAY_MAP    = 1,
+			NODEWAY_LIST   = 2,
+			NODEWAY_SCALAR = 3,
+			NODEWAY_KEY,
+			NODEWAY_COMMA_MAP,
+			NODEWAY_COMMA_LIST
+		};
+		
 		/*
 		* It builds a tree of nodes from text stream
 		* 
@@ -55,7 +65,6 @@ namespace LSCL
 			// Friend function to perform tests
 			friend LSCL::Test::Testdata LSCL::Test::test_builder(void);
 			
-			Node_internal *workpoint_; // Pointer to current container
 			
 			std::string filename_; // Name of processed file (empty if no file)
 			std::unordered_map<std::string, Node_internal*> links_; // Named links to nodes
@@ -69,6 +78,10 @@ namespace LSCL
 			explicit Builder(std::istream& input);
 			explicit Builder(const std::string &filename = "");
 			virtual ~Builder();
+			
+			Node_internal *workpoint; // Pointer to current container
+			bool root_created; // If root node was defined and created yet
+			std::stack<NODEWAY> nodestack; // Stack of the hierarchy we are digging into
 			
 			std::shared_ptr<Node_internal> root; // Root of node tree
 		};

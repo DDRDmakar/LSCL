@@ -10,9 +10,10 @@
 #include <limits.h>
 
 #include <lscl/lscl.hpp>
-#include "../src/test.hpp"
+#include "../src/cpp/test.hpp"
 
-using namespace std;
+
+
 
 TEST_CASE( "Testing availability of testing", "[global]" )
 {
@@ -22,6 +23,7 @@ TEST_CASE( "Testing availability of testing", "[global]" )
 	REQUIRE( 2 == 2 );
 }
 
+/*
 TEST_CASE( "Testing UTF-8 to uint32 translation", "[global]" )
 {
 	std::wstring ans;
@@ -56,43 +58,8 @@ TEST_CASE( "Testing uint32 to UTF-8 translation", "[global]" )
 	std::vector<uint32_t> kimba = LSCL::utf8_vector_to_uint32_vector(ans2);
 	REQUIRE(symba == kimba);
 }
-
-TEST_CASE( "Stream", "[nodebuilder]" )
-{
-	std::string ts(
-		"В процессе курса на многочисленных примерах дается представление "
-		"о многообразии строительных конструкций как в отношении материалов, "
-		"так и конструктивных схем. Анализируются основные нагрузки и воздействия "
-		"на строительные конструкции. Основной упор курса делается на "
-		"расчет таких конструктивных элементов, как балка, колонна, плита, стена, "
-		"арка и нить; причем выполненных из разных материалов – металла (стали), "
-		"дерева, камня (кирпича), железобетона. Далее дается представление "
-		"о конструировании соединений элементов друг с другом. "
-		"После чего показаны принципы формирования строительных конструкций в целом, "
-		"в том числе большепролетных, пространственных и высотных. После анализа "
-		"работы наземных конструкций дается представление о расчете фундаментов "
-		"и грунтов оснований. Также ведется оценка ограждающих функций "
-		"конструкций (тепло и звукоизоляция). "
-	);
-	std::stringstream ss(ts);
-	LSCL::Nodebuilder::Stream lscl_stream_1(ss);
-	for (auto e: ts)
-	{
-		char c = lscl_stream_1.peek_next_char();
-		lscl_stream_1.eat_next_char();
-		REQUIRE(c == e);
-	}
-	REQUIRE(lscl_stream_1.peek_next_char() == '\0');
-	ss.str(ts);
-	LSCL::Nodebuilder::Stream lscl_stream_2(ss);
-	for (auto e: ts)
-	{
-		char c = lscl_stream_2.pop_next_char();
-		REQUIRE(c == e);
-	}
-	REQUIRE(lscl_stream_2.pop_next_char() == '\0');
-}
-
+*/
+/*
 TEST_CASE( "Scalar node properties", "[nodes]" )
 {
 	LSCL::Node_internal *root = new LSCL::Node_internal(LSCL::NODETYPE_NONE);
@@ -107,10 +74,10 @@ TEST_CASE( "Scalar node properties", "[nodes]" )
 	REQUIRE(scalar_ptr->type == LSCL::NODETYPE_SCALAR);
 	REQUIRE(scalar_ptr->is(LSCL::NODETYPE_SCALAR));
 }
-
+*/
+/*
 TEST_CASE( "[] access properties", "[nodes]" )
 {
-	/*
 	LSCL::Node_internal n1(nullptr, "value_1");
 	LSCL::Node_internal list(LSCL::NODETYPE_LIST);
 	for (int i = 0; i < 10; ++i)
@@ -120,8 +87,8 @@ TEST_CASE( "[] access properties", "[nodes]" )
 	list.insert(n1, 3);
 	
 	REQUIRE(n1.size() == 0);
-	*/
 }
+*/
 
 /*
 CHAR_BIT    Number of bits in a char object (byte)          8 or greater*
@@ -143,7 +110,7 @@ ULONG_MAX   Maximum value for an object of type unsigned long int    4294967295 
 LLONG_MIN   Minimum value for an object of type long long int        -9223372036854775807 (-263+1) or less*
 LLONG_MAX   Maximum value for an object of type long long int        9223372036854775807 (263-1) or greater*
 ULLONG_MAX  Maximum value for an object of type unsigned long long int    18446744073709551615 (264-1) or greater*
- */
+ *//*
 inline void node_internal_get_int(int64_t num)
 {
 	LSCL::Node_internal n1(nullptr, std::to_string(num));
@@ -170,7 +137,7 @@ inline void node_internal_get_int(int64_t num)
 	if (num <= ULONG_MAX  && num >= 0) REQUIRE(n1.get<unsigned long>()      == num);
 	if (num <= ULLONG_MAX && num >= 0) REQUIRE(n1.get<unsigned long long>() == num);
 }
-
+*//*
 TEST_CASE( "get<> method", "[nodes]" )
 {
 	for (long long int i = 10; i <= LLONG_MAX && i > 0; i += i/2)
@@ -189,7 +156,7 @@ TEST_CASE( "get<> method", "[nodes]" )
 	REQUIRE(n.get<double>()      == (double)     1.457e-30);
 	REQUIRE(n.get<long double>() -  (long double)1.457e-30 < (long double)1e-35);
 }
-
+*//*
 TEST_CASE( "Escape sequences", "[nodebuilder]" )
 {
 	LSCL::Test::Testdata data = LSCL::Test::test_builder();
@@ -214,3 +181,4 @@ TEST_CASE( "Escape sequences", "[nodebuilder]" )
 	std::cout << "Nodebuilder testing finished (" << data.testblocks.size() << " testblocks OK)" << std::endl;
 	
 }
+*/

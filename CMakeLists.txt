@@ -54,7 +54,6 @@ include(GNUInstallDirs)
 
 set( LSCL_SOURCES
 	src/cpp/nodebuilder.cpp
-	src/cpp/stream.cpp
 	src/cpp/global.cpp
 	src/cpp/exception.cpp
 	src/cpp/node_internal.cpp
@@ -66,7 +65,6 @@ set( LSCL_HEADERS
 	lscl/lscl.hpp
 	src/cpp/defines.hpp
 	src/cpp/nodebuilder.hpp
-	src/cpp/stream.hpp
 	src/cpp/global.hpp
 	src/cpp/exception.hpp
 	src/cpp/node_internal.hpp

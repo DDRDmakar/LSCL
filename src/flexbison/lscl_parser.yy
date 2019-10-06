@@ -26,7 +26,7 @@
 
 %code requires {
 
-	#include "node_internal.hpp"
+	#include "../src/cpp/node_internal.hpp"
 
 	namespace LSCL {
 		namespace Nodebuilder
@@ -71,7 +71,7 @@
 //	LSCL::Node_internal node;
 //}
 
-%token                       END
+%token                       END_OF_FILE
 %token <LSCL::Node_internal> NODE
 %token                       NEWLINE
 %token                       SPACER
@@ -79,19 +79,25 @@
 %token <std::string>         SCALAR_DOUBLE_Q
 %token <std::string>         SCALAR_SINGLE_Q
 
-//%type <LSCL::Node_internal> node
+%type  <std::string>      scalar
 
 %locations
 
 %%
 
-node: lscl_map | lscl_list | scalar ;
+file: /*empty*/ | node ;
 
-lscl_list: '[' lscl_list_body ']' {
-};
+node
+	: lscl_map 
+	| lscl_list 
+	| scalar 
+	;
+
+lscl_list: '[' lscl_list_body ']' ;
 
 lscl_list_body
-	: node
+	: /*empty*/
+	| node
 	| lscl_list_body ',' node
 	| lscl_list_body '\n' node
 	;
@@ -101,30 +107,32 @@ lscl_map: '{' lscl_map_body '}' ;
 kv_pair: scalar ':' node ;
 
 lscl_map_body
-	: kv_pair
+	: /*empty*/
+	| kv_pair
 	| lscl_map_body ',' kv_pair
 	| lscl_map_body '\n' kv_pair
 	;
 
-scalar: _scalar | _scalar_angle ;
-
-_scalar_angle: '<' _scalar '>' ;
-
-_scalar
-	: SCALAR_PLAINTEXT
-	| SCALAR_SINGLE_Q
-	| SCALAR_DOUBLE_Q
+scalar
+	: SCALAR_PLAINTEXT {
+		$$ = LSCL::Nodebuilder::process_scalar_plaintext($1, false);
+	}
+	| '<' SCALAR_PLAINTEXT '>' {
+		$$ = LSCL::Nodebuilder::process_scalar_plaintext($2, true);
+	}
+	| SCALAR_SINGLE_Q {
+		$$ = LSCL::Nodebuilder::process_scalar_quotes_single($1, false);
+	}
+	| '<' SCALAR_SINGLE_Q '>' {
+		$$ = LSCL::Nodebuilder::process_scalar_quotes_single($2, true);
+	}
+	| SCALAR_DOUBLE_Q {
+		$$ = LSCL::Nodebuilder::process_scalar_quotes_double($1, false);
+	}
+	| '<' SCALAR_DOUBLE_Q '>' {
+		$$ = LSCL::Nodebuilder::process_scalar_quotes_double($2, true);
+	}
 	;
-
-/*
-item
-  : UPPER   { builder.add_upper(); }
-  | LOWER   { builder.add_lower(); }
-  | WORD    { builder.add_word( $1 ); }
-  | NEWLINE { builder.add_newline(); }
-  | CHAR    { builder.add_char(); }
-  ;
-*/
 
 %%
 

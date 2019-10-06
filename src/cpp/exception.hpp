@@ -64,9 +64,12 @@ namespace LSCL
 			// virtual ~Config_exception() throw() {}
 			const std::string what() {
 				return "LSCL nodebuilder exception" + 
-				(filename.empty() ? "" : " [file " + filename + "]") + 
-				" [line " + std::to_string(line) + "]: " + 
-				description;
+				(
+					filename.empty() ? 
+					"" : 
+					" [file " + filename + "] [line " + std::to_string(line) + "]"
+				) + 
+				": " + description;
 			}
 		};
 		

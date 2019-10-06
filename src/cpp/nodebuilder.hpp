@@ -27,8 +27,8 @@
 
 #include "node_internal.hpp"
 
-#include "lscl_scanner.hpp"
-#include "lscl_parser.tab.hh"
+#include "../flexbison/lscl_scanner.hpp"
+#include "../../build/lscl_parser.tab.hh"
 
 #include "test.hpp"
 
@@ -63,7 +63,7 @@ namespace LSCL
 			
 			void assign_links(void); // Assign links to link names after all objects are created
 			void build_tree(std::istream &input);
-			size_t get_line(void);
+			size_t get_line(void) const;
 			
 		public:
 			explicit Builder(std::istream& input);
@@ -72,6 +72,11 @@ namespace LSCL
 			
 			std::shared_ptr<Node_internal> root; // Root of node tree
 		};
+		
+		
+		std::string process_scalar_plaintext(    const std::string &input, const bool preserve_newline);
+		std::string process_scalar_quotes_single(const std::string &input, const bool preserve_newline);
+		std::string process_scalar_quotes_double(const std::string &input, const bool preserve_newline);
 		
 	} // Namespace Nodebuilder
 

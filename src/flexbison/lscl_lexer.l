@@ -31,7 +31,7 @@
 using token = LSCL::Nodebuilder::LSCL_Parser::token;
 
 // define yyterminate as this instead of NULL
-#define yyterminate() return( token::END )
+//#define yyterminate() return( token::END_OF_FILE )
 
 // msvc2010 requires that we exclude this header file.
 #define YY_NO_UNISTD_H
@@ -53,27 +53,34 @@ using token = LSCL::Nodebuilder::LSCL_Parser::token;
     yylval = lval;
 %}
 
-"\"((([^\\\"])|(\\[^\"\\])|((\\\\)*(\\\")?))*)\"" {
+<<EOF>>  { return '\0'; }
+
+\"((([^\\\"])|(\\[^\"\\])|((\\\\)*(\\\")?))*)\" {
 	
+	std::cout << "double q: |" << yytext << '|' << std::endl;
 	yylval->build<std::string>(yytext);
 	return token::SCALAR_DOUBLE_Q;
 }
 
-"\'((([^\'])|(\'\'))*)\'" {
+'((([^'])|(''))*)' {
 	
+	std::cout << "single q: |" << yytext << '|' << std::endl;
 	yylval->build<std::string>(yytext);
 	return token::SCALAR_SINGLE_Q;
 }
 
-"(([^\'\"\{\}\[\]\<\>\:/])|(/[^/]))+" {
+([^\\'\"\{\}\[\]\<\>\:/]|\/[^\/])+ {
 	
+	std::cout << "plaintext: |" << yytext << '|' << std::endl;
 	yylval->build<std::string>(yytext);
 	return token::SCALAR_PLAINTEXT;
 }
 
-.           {
-                return yytext[0];
-            }
+. {
+	std::cout << "levak: |" << yytext << '|' << std::endl;
+	return yytext[0];
+}
+
 %%
 
 

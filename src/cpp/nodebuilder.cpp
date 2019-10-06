@@ -104,14 +104,23 @@ void Builder::build_tree(std::istream &input)
 		throw LSCL::Exception::Exception_nodebuilder("Error to allocate memory for parser: (" + std::string(ba.what()) + ")");
 	}
 	
-	if (parser_->parse() != 0)
+	int parse_status = parser_->parse();
+	if (parse_status != 0)
 	{
-		throw LSCL::Exception::Exception_nodebuilder("Parser failed");
+		throw LSCL::Exception::Exception_nodebuilder("Parser failed (code " + std::to_string(parse_status) + ")");
 	}
 }
 
 
+size_t Builder::get_line(void) const
+{
+	return scanner_->lineno();
+}
 
+
+std::string process_scalar_plaintext(    const std::string &input, const bool preserve_newline) { std::cout << '|' << input << '|' << std::endl; return "aaa"; }
+std::string process_scalar_quotes_single(const std::string &input, const bool preserve_newline) { std::cout << '|' << input << '|' << std::endl; return "aaa"; }
+std::string process_scalar_quotes_double(const std::string &input, const bool preserve_newline) { std::cout << '|' << input << '|' << std::endl; return "aaa"; }
 
 /*
 // Processing scalar value, quoted or not

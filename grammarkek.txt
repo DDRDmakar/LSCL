@@ -1,0 +1,119 @@
+
+file: /*empty*/ | node;
+
+endoffile: END_OF_FILE;
+
+node
+	: lscl_map 
+	| lscl_list 
+	| scalar 
+	;
+
+lscl_list: '[' lscl_list_body ']' {
+};
+
+lscl_list_body
+	: node
+	| lscl_list_body ',' node
+	| lscl_list_body '\n' node
+	;
+
+lscl_map: '{' lscl_map_body '}' ;
+
+kv_pair: scalar ':' node ;
+
+lscl_map_body
+	: kv_pair
+	| lscl_map_body ',' kv_pair
+	| lscl_map_body '\n' kv_pair
+	;
+
+file: SCALAR_PLAINTEXT { std::cout << "Got pain text |" << $1 << '|' << std::endl; };
+
+scalar
+	: SCALAR_PLAINTEXT {
+		$$ = LSCL::Nodebuilder::process_scalar_plaintext($1, false);
+	}
+	| '<' SCALAR_PLAINTEXT '>' {
+		$$ = LSCL::Nodebuilder::process_scalar_plaintext($2, true);
+	}
+	| SCALAR_SINGLE_Q {
+		$$ = LSCL::Nodebuilder::process_scalar_quotes_single($1, false);
+	}
+	| '<' SCALAR_SINGLE_Q '>' {
+		$$ = LSCL::Nodebuilder::process_scalar_quotes_single($2, true);
+	}
+	| SCALAR_DOUBLE_Q {
+		$$ = LSCL::Nodebuilder::process_scalar_quotes_double($1, false);
+	}
+	| '<' SCALAR_DOUBLE_Q '>' {
+		$$ = LSCL::Nodebuilder::process_scalar_quotes_double($2, true);
+	}
+	;
+
+
+item
+  : UPPER   { builder.add_upper(); }
+  | LOWER   { builder.add_lower(); }
+  | WORD    { builder.add_word( $1 ); }
+  | NEWLINE { builder.add_newline(); }
+  | CHAR    { builder.add_char(); }
+  ;
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+<<EOF>>  { return '\0'; }
+
+"\"((([^\\\"])|(\\[^\"\\])|((\\\\)*(\\\")?))*)\"" {
+	
+	yylval->build<std::string>(yytext);
+	return token::SCALAR_DOUBLE_Q;
+}
+
+"\'((([^\'])|(\'\'))*)\'" {
+	
+	yylval->build<std::string>(yytext);
+	return token::SCALAR_SINGLE_Q;
+}
+
+"(([^\'\"\{\}\[\]\<\>\:/])|(/[^/]))+" {
+	
+	yylval->build<std::string>(yytext);
+	return token::SCALAR_PLAINTEXT;
+}
+
+.           {
+                return yytext[0];
+            }

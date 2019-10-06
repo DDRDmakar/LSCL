@@ -24,8 +24,8 @@
 #include <FlexLexer.h>
 #endif
 
-#include "lscl_parser.tab.hh"
-#include "location.hh"
+#include "../../build/lscl_parser.tab.hh"
+#include "../../build/location.hh"
 
 namespace LSCL
 {

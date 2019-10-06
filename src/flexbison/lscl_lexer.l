@@ -69,7 +69,7 @@ using token = LSCL::Nodebuilder::LSCL_Parser::token;
 	return token::SCALAR_SINGLE_Q;
 }
 
-([^\\'\"\{\}\[\]\<\>\:/]|\/[^\/])+ {
+([^\\'\"\{\}\[\]\<\>\:/\+]|\/[^\/])+ {
 	
 	std::cout << "plaintext: |" << yytext << '|' << std::endl;
 	yylval->build<std::string>(yytext);

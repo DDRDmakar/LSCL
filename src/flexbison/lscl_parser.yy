@@ -85,9 +85,15 @@
 
 %%
 
+// Whole file could be empty or contain valid node
 file: /*empty*/ | node ;
 
 node
+	: node_2
+	| node '+' node_2
+	;
+
+node_2
 	: lscl_map 
 	| lscl_list 
 	| scalar 

@@ -68,7 +68,7 @@ namespace LSCL
 		linked(nullptr)
 	{
 	}
-	
+	/*
 	// List
 	Node_internal::Node_internal(
 		Node_internal *parent, 
@@ -94,6 +94,7 @@ namespace LSCL
 		linked(nullptr)
 	{
 	}
+	*/
 	
 	Node_internal::~Node_internal(void)
 	{

@@ -16,11 +16,11 @@
  * 
  */
 
-#include <stdarg.h>
 
 #include "node_internal.hpp"
 
-/* 
+/* С++17
+
 #include <type_traits>
 
 template <typename T>
@@ -54,12 +54,26 @@ namespace LSCL
 		type(nt),
 		linked(nullptr)
 	{
+		switch (nt)
+		{
+			case NODETYPE_LIST:
+			{
+				values_list = std::make_shared<lscl_list>();
+				break;
+			}
+			case NODETYPE_MAP:
+			{
+				values_map = std::make_shared<lscl_map>();
+				break;
+			}
+			default: { break; }
+		}
 	}
 	
 	// Scalar
 	Node_internal::Node_internal(
-		Node_internal *parent, 
-		const std::string &value
+		const std::string &value,
+		Node_internal *parent
 	)
 	: 
 		parent(parent), 
@@ -68,33 +82,32 @@ namespace LSCL
 		linked(nullptr)
 	{
 	}
-	/*
+	
 	// List
 	Node_internal::Node_internal(
-		Node_internal *parent, 
-		const std::vector<Node_internal> &value
+		const std::shared_ptr<lscl_list> &values_list,
+		Node_internal *parent
 	)
-	: 
-		parent(parent), 
-		type(NODETYPE_LIST), 
-		values_list(value),
+	:
+		parent(parent),
+		type(NODETYPE_LIST),
+		values_list(values_list),
 		linked(nullptr)
 	{
 	}
 	
 	// Map
 	Node_internal::Node_internal(
-		Node_internal *parent, 
-		const std::map<std::string, Node_internal> &value
+		const std::shared_ptr<lscl_map> &values_map,
+		Node_internal *parent
 	)
-	: 
-		parent(parent), 
-		type(NODETYPE_MAP), 
-		values_map(value),
+	:
+		parent(parent),
+		type(NODETYPE_MAP),
+		values_map(values_map),
 		linked(nullptr)
 	{
 	}
-	*/
 	
 	Node_internal::~Node_internal(void)
 	{
@@ -106,8 +119,8 @@ namespace LSCL
 	{
 		switch (type)
 		{
-			case NODETYPE_LIST: { return values_list.size(); break; }
-			case NODETYPE_MAP:  { return values_map.size();  break; }
+			case NODETYPE_LIST: { return values_list->size(); break; }
+			case NODETYPE_MAP:  { return values_map->size();  break; }
 			default: throw LSCL::Exception::Exception_access("Called size() method on non-list and non-map node");
 		}
 	}
@@ -118,22 +131,23 @@ namespace LSCL
 	{
 		if (type != NODETYPE_LIST) throw LSCL::Exception::Exception_nodebuilder("Called insert_into_list() method on non-list node");
 		
-		values_list.push_back(node);
-		return &( values_list.back() );
+		values_list->push_back(node);
+		return &( values_list->back() );
 	}
 	
 	Node_internal* Node_internal::insert_into_map(const std::string &key, const Node_internal &node)
 	{
 		if (type != NODETYPE_MAP) throw LSCL::Exception::Exception_nodebuilder("Called insert_into_map() method on non-map node");
 		
-		values_map.insert(
+		values_map->insert(
 			{
 				key,
 				node
 			}
 		);
-		auto inserted = values_map.find(key);
-		if (inserted == values_map.end()) return nullptr;
+		
+		auto inserted = values_map->find(key);
+		if (inserted == values_map->end()) return nullptr;
 		else return &( inserted->second );
 	}
 	

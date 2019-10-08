@@ -61,14 +61,6 @@
 	#undef  yylex
 	#define yylex scanner.yylex
 	
-	#define INSERT_SCALAR_INTO_LIST(nod)                                       \
-		if (nod.type == NODETYPE_SCALAR)                                       \
-		{                                                                      \
-			builder.workpoint->values_list.push_back(nod);                     \
-			builder.workpoint->values_list.back().parent = builder.workpoint;  \
-		}                                                                      \
-	
-	
 }
 
 %define parse.assert
@@ -80,16 +72,20 @@
 //}
 
 %token                       END_OF_FILE
-%token <LSCL::Node_internal> NODE
 %token                       NEWLINE
 %token                       SPACER
 %token <std::string>         SCALAR_PLAINTEXT
 %token <std::string>         SCALAR_DOUBLE_Q
 %token <std::string>         SCALAR_SINGLE_Q
 
-%type  <LSCL::Node_internal>      scalar
-%type  <LSCL::Node_internal>      node
-%type  <LSCL::Node_internal>      node_2
+%type  <Node_internal>                             file
+%type  <Node_internal>                             scalar
+%type  <Node_internal>                             node
+%type  <Node_internal>                             node_2
+%type  <std::shared_ptr<Node_internal::lscl_map>>  lscl_map_body
+%type  <Node_internal>                             lscl_map
+%type  <std::shared_ptr<Node_internal::lscl_list>> lscl_list_body
+%type  <Node_internal>                             lscl_list
 
 %locations
 
@@ -97,127 +93,118 @@
 
 // Whole file could be empty or contain valid node
 file
-	: node    { std::cout << "file (node)\n"; }
-	| %empty  {
-		
-		std::cout << "file (empty)\n";
-		builder.root_created = true;
-		builder.root = std::make_shared<Node_internal>(NODETYPE_NONE, nullptr); // NONE node on the tree root
-		builder.workpoint = builder.root.get();
-	}
+	: node    { std::cout << "file (node)\n";  builder.root = $1; }
+	| %empty  { builder.root = Node_internal(NODETYPE_NONE); }
 	;
 	
 
 node
 	: node_2 { std::cout << "node\n"; $$ = $1; }
-	| node '+' node_2
+	| node '+' node_2 { $$ = $1; }
 	;
 
 node_2
-	: lscl_map { $$ = Node_internal(NODETYPE_NONE); }
-	| lscl_list { std::cout << "node_2: list\n"; $$ = Node_internal(NODETYPE_NONE); }
-	| scalar {
-		std::cout << "node_2: scalar\n";
-		// If file contains only one scalar
-		if (!builder.root_created)
-		{
-			builder.root_created = true;
-			std::cout << "File contains scalar - creating it" << std::endl;
-			builder.root = std::make_shared<LSCL::Node_internal>($1); // Create scalar at tree root
-			builder.workpoint = builder.root.get();
-			$$ = Node_internal(NODETYPE_NONE);
-		}
+	: lscl_map { $$ = $1; }
+	| lscl_list { std::cout << "node_2: list\n"; $$ = $1; }
+	| scalar { std::cout << "node_2: scalar\n"; $$ = $1; }
+	;
+
+lscl_list: '[' lscl_list_body ']' { std::cout << "lscl_list (size = " << $2->size() << ")\n"; $$ = Node_internal($2); } ;
+
+lscl_list_body
+	: %empty { std::cout << "lscl_list_body: empty\n"; $$ = std::make_shared<Node_internal::lscl_list>(); }
+	| node   {
+		std::cout << "lscl_list_body: single node\n";
+		auto temp_ptr = std::make_shared<Node_internal::lscl_list>();
+		temp_ptr->push_back($1);
+		$$ = temp_ptr;
+	}
+	| lscl_list_body ',' node  {
+		std::cout << "lscl_list_body: comma-repeated\n";
+		$1->push_back($3);
+		$$ = $1;
+	}
+	| lscl_list_body '\n' node {
+		std::cout << "lscl_list_body: newline-repeated\n";
+		$1->push_back($3);
 		$$ = $1;
 	}
 	;
 
-open_square: '[' {
-	
-	if (!builder.root_created)
-	{
-		builder.root_created = true;
-		std::cout << "Beginning of list - creating list at tree root" << std::endl;
-		builder.root = std::make_shared<LSCL::Node_internal>(LSCL::NODETYPE_LIST, nullptr); // Create list at tree root
-		builder.workpoint = builder.root.get();
-	}
-	else
-	{
-		
-	}
-	builder.nodestack.push(NODEWAY_LIST);
-};
-
-lscl_list: open_square lscl_list_body ']' { std::cout << "lscl_list\n"; } ;
-
-lscl_list_body
-	: %empty { std::cout << "lscl_list_body: empty\n"; }
-	| node   {
-		std::cout << "lscl_list_body: single node\n";
-		INSERT_SCALAR_INTO_LIST($1);
-	}
-	| lscl_list_body ',' node  { std::cout << "lscl_list_body: comma-repeated\n"; }
-	| lscl_list_body '\n' node { std::cout << "lscl_list_body: newline-repeated\n"; }
-	;
-
-open_curved: '{' {
-	
-	if (!builder.root_created)
-	{
-		builder.root_created = true;
-		std::cout << "Beginning of map - creating map at tree root" << std::endl;
-		builder.root = std::make_shared<LSCL::Node_internal>(NODETYPE_MAP, nullptr); // Create map at tree root
-		builder.workpoint = builder.root.get();
-	}
-	builder.nodestack.push(NODEWAY_LIST);
-};
-
-
-lscl_map: open_curved lscl_map_body '}' ;
-
-kv_pair: scalar ':' node ;
+lscl_map: '{' lscl_map_body '}' { std::cout << "lscl_map (size = " << $2->size() << ")\n"; $$ = Node_internal($2); } ;
 
 lscl_map_body
-	: %empty
-	| kv_pair
-	| lscl_map_body ',' kv_pair
-	| lscl_map_body '\n' kv_pair
+	: %empty {
+		std::cout << "lscl_map_body: empty\n";
+		$$ = std::make_shared<Node_internal::lscl_map>();
+	}
+	| scalar ':' node {
+		std::cout << "lscl_map_body: single node\n";
+		auto temp_ptr = std::make_shared<Node_internal::lscl_map>();
+		temp_ptr->insert(
+			{
+				$1.value, // key
+				$3        // value
+			}
+		);
+		$$ = temp_ptr;
+	}
+	| lscl_map_body ',' scalar ':' node {
+		std::cout << "lscl_map_body: comma-repeated\n";
+		$1->insert(
+			{
+				$3.value, // key
+				$5        // value
+			}
+		);
+		$$ = $1;
+	}
+	| lscl_map_body '\n' scalar ':' node {
+		std::cout << "lscl_map_body: newline-repeated\n";
+		$1->insert(
+			{
+				$3.value, // key
+				$5        // value
+			}
+		);
+		$$ = $1;
+	}
 	;
 
 scalar
 	: SCALAR_PLAINTEXT {
-		$$ = LSCL::Node_internal(
-			nullptr,
-			process_scalar_plaintext($1, false)
-		);
-	}
-	| '<' SCALAR_PLAINTEXT '>' {
-		$$ = LSCL::Node_internal(
-			nullptr,
-			process_scalar_plaintext($2, true)
+		$$ = Node_internal(
+			process_scalar_plaintext($1) // Preserve nothing
 		);
 	}
 	| SCALAR_SINGLE_Q {
 		$$ = Node_internal(
-			nullptr,
-			process_scalar_quotes_single($1, false)
+			process_scalar_quotes_single($1, 0) // Preserve nothing
 		);
 	}
 	| '<' SCALAR_SINGLE_Q '>' {
 		$$ = Node_internal(
-			nullptr,
-			process_scalar_quotes_single($2, true)
+			process_scalar_quotes_single($2, 1) // Preserve newlines
+		);
+	}
+	| '<' '<' SCALAR_SINGLE_Q '>' '>' {
+		$$ = Node_internal(
+			process_scalar_quotes_single($3, 2) // Preserve everything
 		);
 	}
 	| SCALAR_DOUBLE_Q {
 		$$ = Node_internal(
-			nullptr,
-			process_scalar_quotes_double($1, false)
+			process_scalar_quotes_double($1, 0) // Preserve nothing
 		);
 	}
 	| '<' SCALAR_DOUBLE_Q '>' {
 		$$ = Node_internal(
-			nullptr,
-			process_scalar_quotes_double($2, true)
+			process_scalar_quotes_double($2, 1) // Preserve newlines
+		);
+	}
+	| '<' '<' SCALAR_DOUBLE_Q '>' '>' {
+		$$ = Node_internal(
+			process_scalar_quotes_double($3, 2) // Preserve everything
 		);
 	}
 	;

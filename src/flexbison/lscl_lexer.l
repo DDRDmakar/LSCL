@@ -55,14 +55,16 @@ using token = LSCL::Nodebuilder::LSCL_Parser::token;
 
 <<EOF>>  { return '\0'; }
 
-\"((([^\\\"])|(\\[^\"\\])|((\\\\)*(\\\")?))*)\" {
+
+
+\"((([^\\\"])|\n|(\\[^\"\\])|((\\\\)*(\\\")?))*)\" {
 	
 	std::cout << "double q: |" << yytext << '|' << std::endl;
 	yylval->build<std::string>(yytext);
 	return token::SCALAR_DOUBLE_Q;
 }
 
-'((([^'])|(''))*)' {
+'((([^'])|\n|(''))*)' {
 	
 	std::cout << "single q: |" << yytext << '|' << std::endl;
 	yylval->build<std::string>(yytext);
@@ -76,7 +78,7 @@ using token = LSCL::Nodebuilder::LSCL_Parser::token;
 	return token::SCALAR_PLAINTEXT;
 }
 
-. {
+.|\n {
 	std::cout << "char: " << yytext << std::endl;
 	return yytext[0];
 }

@@ -127,13 +127,13 @@ size_t Builder::get_line(void) const
 }
 
 
-std::string process_scalar_plaintext(    const std::string &input, const bool preserve_newline)
+std::string process_scalar_plaintext(const std::string &input)
 {
 	std::cout << '|' << input << '|' << std::endl;
 	return input;
 }
-std::string process_scalar_quotes_single(const std::string &input, const bool preserve_newline) { std::cout << '|' << input << '|' << std::endl; return "aaa"; }
-std::string process_scalar_quotes_double(const std::string &input, const bool preserve_newline) { std::cout << '|' << input << '|' << std::endl; return "aaa"; }
+std::string process_scalar_quotes_single(const std::string &input, const int preserve_newline) { std::cout << '|' << input << '|' << std::endl; return input; }
+std::string process_scalar_quotes_double(const std::string &input, const int preserve_newline) { std::cout << '|' << input << '|' << std::endl; return input; }
 
 
 void Builder::assign_links(void)

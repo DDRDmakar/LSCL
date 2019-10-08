@@ -10,7 +10,7 @@
 #include <limits.h>
 
 #include <lscl/lscl.hpp>
-#include "../src/cpp/test.hpp"
+#include "../src/cpp/test.cpp"
 
 
 
@@ -78,16 +78,16 @@ TEST_CASE( "Scalar node properties", "[nodes]" )
 
 TEST_CASE( "[] access properties", "[nodes]" )
 {
-	LSCL::Node_internal n1(nullptr, "value_1");
+	LSCL::Node_internal n1("value_1");
 	LSCL::Node_internal list(LSCL::NODETYPE_LIST);
 	for (int i = 0; i < 10; ++i)
 	{
-		list.values_list.push_back(
-			LSCL::Node_internal(&list, "num_" + std::to_string(i))
+		list.values_list->push_back(
+			LSCL::Node_internal("num_" + std::to_string(i), &list)
 		);
 	}
-	list.values_list.push_back(
-		LSCL::Node_internal(&list, "3")
+	list.values_list->push_back(
+		LSCL::Node_internal("3", &list)
 	);
 	
 	REQUIRE(list.size() == 11);
@@ -117,7 +117,7 @@ ULLONG_MAX  Maximum value for an object of type unsigned long long int    184467
  */
 inline void node_internal_get_int(int64_t num)
 {
-	LSCL::Node_internal n1(nullptr, std::to_string(num));
+	LSCL::Node_internal n1(std::to_string(num));
 	
 	if (num <= UCHAR_MAX  && num >= 0) REQUIRE(n1.get<uint8_t>()  == num);
 	if (num <= USHRT_MAX  && num >= 0) REQUIRE(n1.get<uint16_t>() == num);
@@ -150,7 +150,7 @@ TEST_CASE( "get<> method", "[nodes]" )
 		node_internal_get_int(-i);
 	}
 	
-	LSCL::Node_internal n(nullptr, "0.0");
+	LSCL::Node_internal n("0.0");
 	REQUIRE(n.get<float>()       == (float)      0.0);
 	REQUIRE(n.get<double>()      == (double)     0.0);
 	REQUIRE(n.get<long double>() == (long double)0.0);

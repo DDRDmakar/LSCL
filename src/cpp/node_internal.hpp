@@ -107,13 +107,19 @@ namespace LSCL
 		
 	public:
 		
+		friend class Nodebuilder::Builder;
+		friend class Node;
+		
+		typedef std::vector<Node_internal>           lscl_list;
+		typedef std::map<std::string, Node_internal> lscl_map;
+		
 		Node_internal *parent;
 		NODETYPE type;
-		friend class Nodebuilder::Builder;
-		std::string value;                               // SCALAR: scalar value
-		std::vector<LSCL::Node_internal>    values_list; // LIST: list of values
-		std::map<std::string, Node_internal> values_map; // MAP: map of values
-		Node_internal *linked;                           // Pointer to linked node 
+		
+		std::string value;                      // SCALAR: scalar value
+		std::shared_ptr<lscl_list> values_list; // LIST: list of values
+		std::shared_ptr<lscl_map>  values_map;  // MAP: map of values
+		Node_internal *linked;                  // Pointer to linked node 
 		
 		// Default constructor
 		Node_internal(void);
@@ -124,18 +130,18 @@ namespace LSCL
 		);
 		// Scalar
 		Node_internal(
-			Node_internal *parent, 
-			const std::string &value
+			const std::string &value,
+			Node_internal *parent = nullptr
 		);
 		// List
 		Node_internal(
-			Node_internal *parent, 
-			const std::vector<Node_internal> &value
+			const std::shared_ptr<lscl_list> &values_list,
+			Node_internal *parent = nullptr
 		);
 		// Map
 		Node_internal(
-			Node_internal *parent, 
-			const std::map<std::string, Node_internal> &value
+			const std::shared_ptr<lscl_map> &values_map,
+			Node_internal *parent = nullptr
 		);
 		
 		virtual ~Node_internal(void);

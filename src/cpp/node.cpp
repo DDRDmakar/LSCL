@@ -37,18 +37,18 @@ namespace LSCL
 	
 	Node Node::operator[](const size_t idx)
 	{
-		return Node(core->values_list.at(idx));
+		return Node(core->values_list->at(idx));
 	}
 	
 	void Node::insert(const Node &element, const size_t idx)
 	{
 		if (idx == SIZE_MAX) // idx == last position
 		{
-			core->values_list.push_back(*element.core);
+			core->values_list->push_back(*element.core);
 		}
 		else
 		{
-			core->values_list.insert(core->values_list.begin() + idx, *element.core);
+			core->values_list->insert(core->values_list->begin() + idx, *element.core);
 		}
 	}
 	
@@ -56,19 +56,19 @@ namespace LSCL
 	{
 		if (idx == SIZE_MAX) // idx == last position
 		{
-			core->values_list.push_back(element);
+			core->values_list->push_back(element);
 		}
 		else
 		{
-			core->values_list.insert(core->values_list.begin() + idx, element);
-			core->values_list[idx].parent = core;
+			core->values_list->insert(core->values_list->begin() + idx, element);
+			core->values_list->operator[](idx).parent = core;
 		}
 	}
 	
 	bool Node::remove(const size_t idx)
 	{
-		if (idx >= core->values_list.size()) return false;
-		core->values_list.erase(core->values_list.begin() + idx);
+		if (idx >= core->values_list->size()) return false;
+		core->values_list->erase(core->values_list->begin() + idx);
 		return true;
 	}
 	
@@ -77,8 +77,8 @@ namespace LSCL
 	
 	Node Node::operator[](const std::string &key)
 	{
-		auto res = core->values_map.find(key);
-		if (res != core->values_map.end()) return res->second;
+		auto res = core->values_map->find(key);
+		if (res != core->values_map->end()) return res->second;
 		else throw LSCL::Exception::Exception_modify("Accessing map with unknown key \"" + key + "\"");
 	}
 	
@@ -86,21 +86,21 @@ namespace LSCL
 	{
 		auto node_internal_to_insert = *element.core; // Make a full copy of internal node
 		node_internal_to_insert.parent = core;        // Change parent pointer
-		core->values_map.emplace(std::make_pair(key, node_internal_to_insert)); // Insert node
+		core->values_map->emplace(std::make_pair(key, node_internal_to_insert)); // Insert node
 	}
 	
 	void Node::insert(const Node_internal &element, const std::string &key)
 	{
-		core->values_map.emplace(std::make_pair(key, element)); // Insert node
-		core->values_map[key].parent = core;
+		core->values_map->emplace(std::make_pair(key, element)); // Insert node
+		core->values_map->operator[](key).parent = core;
 	}
 	
 	bool Node::remove(const std::string &key)
 	{
-		auto res = core->values_map.find(key);
-		if (res != core->values_map.end())
+		auto res = core->values_map->find(key);
+		if (res != core->values_map->end())
 		{
-			core->values_map.erase(res);
+			core->values_map->erase(res);
 			return true;
 		}
 		else return false;

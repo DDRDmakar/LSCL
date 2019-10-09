@@ -71,9 +71,6 @@
 //	LSCL::Node_internal node;
 //}
 
-%token                       END_OF_FILE
-%token                       NEWLINE
-%token                       SPACER
 %token <std::string>         SCALAR_PLAINTEXT
 %token <std::string>         SCALAR_DOUBLE_Q
 %token <std::string>         SCALAR_SINGLE_Q
@@ -93,10 +90,9 @@
 
 // Whole file could be empty or contain valid node
 file
-	: node    { std::cout << "file (node)\n";  builder.root = $1; }
-	| %empty  { builder.root = Node_internal(NODETYPE_NONE); }
+	: node    { std::cout << "file (node)\n"; builder.root = $1; }
+	| %empty  { std::cout << "file (empty)\n"; builder.root = Node_internal(NODETYPE_NONE); }
 	;
-	
 
 node
 	: node_2 { std::cout << "node\n"; $$ = $1; }
@@ -124,11 +120,6 @@ lscl_list_body
 		$1->push_back($3);
 		$$ = $1;
 	}
-	| lscl_list_body '\n' node {
-		std::cout << "lscl_list_body: newline-repeated\n";
-		$1->push_back($3);
-		$$ = $1;
-	}
 	;
 
 lscl_map: '{' lscl_map_body '}' { std::cout << "lscl_map (size = " << $2->size() << ")\n"; $$ = Node_internal($2); } ;
@@ -151,16 +142,6 @@ lscl_map_body
 	}
 	| lscl_map_body ',' scalar ':' node {
 		std::cout << "lscl_map_body: comma-repeated\n";
-		$1->insert(
-			{
-				$3.value, // key
-				$5        // value
-			}
-		);
-		$$ = $1;
-	}
-	| lscl_map_body '\n' scalar ':' node {
-		std::cout << "lscl_map_body: newline-repeated\n";
 		$1->insert(
 			{
 				$3.value, // key

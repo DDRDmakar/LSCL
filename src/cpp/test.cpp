@@ -107,16 +107,16 @@ namespace Test
 		Testblock *tb;
 		
 		try
-		{/*
+		{
 			{
 				// Single list
 				std::string s = "[abcdefg]";
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
-				TEST_BOOL(builder.root != nullptr, "Root is NULL");
+				TEST_BOOL(builder.root.type != LSCL::NODETYPE_NONE, "Root is NULL");
 				CMP_NUM(builder.root.values_list->size(), 1, "List size");
-				std::string s2 = builder.root->values_list[0].get<std::string>();
+				std::string s2 = builder.root.values_list->at(0).get<std::string>();
 				CMP_TEXT(s2, "abcdefg", "List contents");
 			}
 			{
@@ -132,7 +132,6 @@ namespace Test
 			
 			
 			
-			
 			{
 				// List
 				std::string s = "[abcdefg, xyz]";
@@ -140,9 +139,9 @@ namespace Test
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
 				CMP_NUM(builder.root.values_list->size(), 2, "List size");
-				std::string s2 = builder.root->values_list[0].get<std::string>();
+				std::string s2 = builder.root.values_list->at(0).get<std::string>();
 				CMP_TEXT(s2, "abcdefg", "List contents");
-				s2 = builder.root->values_list[1].get<std::string>();
+				s2 = builder.root.values_list->at(1).get<std::string>();
 				CMP_TEXT(s2, "xyz", "List contents");
 			}
 			{
@@ -160,7 +159,7 @@ namespace Test
 			
 			
 			
-			
+			/*
 			{
 				// Map with quoted strings
 				std::string s = "{key: \'val валъ\', key2: \"val2\\n\\t\"}";
@@ -213,7 +212,6 @@ namespace Test
 			}
 			
 			
-			/*
 			{
 				// Scalar
 				std::string s = "aaaa";
@@ -221,7 +219,7 @@ namespace Test
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
 				CMP_TYPE(builder.root.type, LSCL::NODETYPE_SCALAR, "Root node type");
-				std::string s2 = builder.root->get<std::string>();
+				std::string s2 = builder.root.get<std::string>();
 				CMP_TEXT(s2, s, "Scalar value");
 			}
 			{
@@ -231,9 +229,9 @@ namespace Test
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
 				CMP_TYPE(builder.root.type, LSCL::NODETYPE_SCALAR, "Root node type");
-				std::string s2 = builder.root->get<std::string>();
+				std::string s2 = builder.root.get<std::string>();
 				CMP_TEXT(s2, s, "Scalar value");
-			}
+			}/*
 			{
 				// Quoted scalar
 				std::string s = "\"aaaa\"";
@@ -241,7 +239,7 @@ namespace Test
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
 				CMP_TYPE(builder.root.type, LSCL::NODETYPE_SCALAR, "Root node type");
-				std::string s2 = builder.root->get<std::string>();
+				std::string s2 = builder.root.get<std::string>();
 				CMP_TEXT(s2, "aaaa", "Scalar value");
 			}
 			

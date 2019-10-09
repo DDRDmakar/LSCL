@@ -71,14 +71,16 @@ using token = LSCL::Nodebuilder::LSCL_Parser::token;
 	return token::SCALAR_SINGLE_Q;
 }
 
-([^\\'\"\{\}\[\]\<\>\:/\+]|\/[^\/])+ {
+[^\\'\"\\,{\}\[\]\<\>\:/\+\t\n ]([^\\'\"\\,{\}\[\]\<\>\:/\+\n]|\/[^\/])* {
 	
 	std::cout << "plaintext: |" << yytext << '|' << std::endl;
 	yylval->build<std::string>(yytext);
 	return token::SCALAR_PLAINTEXT;
 }
 
-.|\n {
+(\t|" "|\n)+ ; // Skip spacers
+
+. {
 	std::cout << "char: " << yytext << std::endl;
 	return yytext[0];
 }

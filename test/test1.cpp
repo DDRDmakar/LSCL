@@ -10,7 +10,7 @@
 #include <limits.h>
 
 #include <lscl/lscl.hpp>
-#include "../src/cpp/test.cpp"
+#include "../src/cpp/test.hpp"
 
 
 

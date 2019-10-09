@@ -159,7 +159,7 @@ namespace Test
 			
 			
 			
-			/*
+			
 			{
 				// Map with quoted strings
 				std::string s = "{key: \'val валъ\', key2: \"val2\\n\\t\"}";
@@ -171,7 +171,7 @@ namespace Test
 				CMP_TEXT(s2, "val валъ", "First value in map");
 				s2 = builder.root.values_map->find("key2")->second.get<std::string>();
 				CMP_TEXT(s2, "val2\n\t", "Second value in map");
-			}*/
+			}
 			
 			
 			
@@ -231,7 +231,7 @@ namespace Test
 				CMP_TYPE(builder.root.type, LSCL::NODETYPE_SCALAR, "Root node type");
 				std::string s2 = builder.root.get<std::string>();
 				CMP_TEXT(s2, s, "Scalar value");
-			}/*
+			}
 			{
 				// Quoted scalar
 				std::string s = "\"aaaa\"";
@@ -253,7 +253,7 @@ namespace Test
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
 				CMP_TYPE(builder.root.type, LSCL::NODETYPE_SCALAR, "Root node type");
-				std::string s2 = builder.root->get<std::string>();
+				std::string s2 = builder.root.get<std::string>();
 				CMP_TEXT(s2, "bbbb", "Scalar value");
 			}
 			{
@@ -263,9 +263,9 @@ namespace Test
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
 				CMP_TYPE(builder.root.type, LSCL::NODETYPE_SCALAR, "Root node type");
-				std::string s2 = builder.root->get<std::string>();
+				std::string s2 = builder.root.get<std::string>();
 				CMP_TEXT(s2, "bbb\nb", "Scalar value");
-			}
+			}/*
 			{
 				// \n should be ignored
 				std::string s = "{key: \'va\nl\'}";
@@ -285,17 +285,7 @@ namespace Test
 				CMP_NUM(builder.root.values_map->size(), 1, "Map size");
 				std::string s2 = builder.root.values_map->find("key")->second.get<std::string>();
 				CMP_TEXT(s2, "va\nl", "Value in map");
-			}
-			{
-				// Triangle brackets without quotes
-				std::string s = "{key: <va\nl>}";
-				tb = data.add(s);
-				std::stringstream ss(s);
-				LSCL::Nodebuilder::Builder builder(ss);
-				CMP_NUM(builder.root.values_map->size(), 1, "Map size");
-				std::string s2 = builder.root.values_map->find("key")->second.get<std::string>();
-				CMP_TEXT(s2, "va\nl", "Value in map");
-			}
+			}*/
 			
 			
 			
@@ -306,12 +296,13 @@ namespace Test
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
+				CMP_TYPE(builder.root.type, LSCL::NODETYPE_LIST, "External list type");
 				CMP_NUM(builder.root.values_list->size(), 2, "External list size");
-				std::string s2 = builder.root->values_list[0].get<std::string>();
+				std::string s2 = builder.root.values_list->at(0).get<std::string>();
 				CMP_TEXT(s2, "abcdefg", "External list value");
-				CMP_TYPE(builder.root->values_list[1].type, LSCL::NODETYPE_LIST, "Internal list type");
-				CMP_NUM(builder.root->values_list[1].values_list.size(), 1, "Internal list size");
-				s2 = builder.root->values_list[1].values_list[0].get<std::string>();
+				CMP_TYPE(builder.root.values_list->at(1).type, LSCL::NODETYPE_LIST, "Internal list type");
+				CMP_NUM(builder.root.values_list->at(1).values_list->size(), 1, "Internal list size");
+				s2 = builder.root.values_list->at(1).values_list->at(0).get<std::string>();
 				CMP_TEXT(s2, "xyz", "Internal list value");
 			}
 			{
@@ -320,12 +311,13 @@ namespace Test
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
+				CMP_TYPE(builder.root.type, LSCL::NODETYPE_MAP, "External map type");
 				CMP_NUM(builder.root.values_map->size(), 2, "External map size");
 				std::string s2 = builder.root.values_map->find("key")->second.get<std::string>();
 				CMP_TEXT(s2, "val", "External map value");
-				CMP_TYPE(builder.root->values_map["key2"].type, LSCL::NODETYPE_MAP, "Internal map type");
-				CMP_NUM(builder.root->values_map["key2"].values_map.size(), 1, "Internal map size");
-				s2 = builder.root.values_map->find("key2")->second.values_map.find("key3")->second.get<std::string>();
+				CMP_TYPE(builder.root.values_map->find("key2")->second.type, LSCL::NODETYPE_MAP, "Internal map type");
+				CMP_NUM(builder.root.values_map->find("key2")->second.size(), 1, "Internal map size");
+				s2 = builder.root.values_map->find("key2")->second.values_map->find("key3")->second.get<std::string>();
 				CMP_TEXT(s2, "val3", "Internal map value");
 			}
 			{
@@ -334,23 +326,11 @@ namespace Test
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
-				CMP_NUM(builder.root.values_list->size(), 1, "External list size");
-				CMP_TYPE(builder.root->values_list[0].type, LSCL::NODETYPE_LIST, "Internal list type");
-				CMP_NUM(builder.root->values_list[0].values_list.size(), 1, "Internal list size");
-				std::string s2 = builder.root->values_list[0].values_list[0].get<std::string>();
+				CMP_NUM(builder.root.size(), 1, "External list size");
+				CMP_TYPE(builder.root.values_list->at(0).type, LSCL::NODETYPE_LIST, "Internal list type");
+				CMP_NUM(builder.root.values_list->at(0).size(), 1, "Internal list size");
+				std::string s2 = builder.root.values_list->operator[](0).values_list->at(0).get<std::string>();
 				CMP_TEXT(s2, "xyz", "Internal list value");
-			}
-			{
-				// Nested single map
-				std::string s = "{key2:{key3: val3}}";
-				tb = data.add(s);
-				std::stringstream ss(s);
-				LSCL::Nodebuilder::Builder builder(ss);
-				CMP_NUM(builder.root.values_map->size(), 1, "External map size");
-				CMP_TYPE(builder.root->values_map["key2"].type, LSCL::NODETYPE_MAP, "Internal map type");
-				CMP_NUM(builder.root->values_map["key2"].values_map.size(), 1, "Internal map size");
-				std::string s2 = builder.root.values_map->find("key2")->second.values_map.find("key3")->second.get<std::string>();
-				CMP_TEXT(s2, "val3", "Internal map value");
 			}
 			{
 				// Multiline nested single map
@@ -364,26 +344,35 @@ namespace Test
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
-				CMP_NUM(builder.root.values_map->size(), 1, "External map size");
-				CMP_TYPE(builder.root->values_map["key2"].type, LSCL::NODETYPE_MAP, "Internal map type");
-				CMP_NUM(builder.root->values_map["key2"].values_map.size(), 1, "Internal map size");
-				std::string s2 = builder.root.values_map->find("key2")->second.values_map.find("key3")->second.get<std::string>();
+				CMP_NUM(builder.root.size(), 1, "External map size");
+				CMP_TYPE(builder.root.values_map->find("key2")->second.type, LSCL::NODETYPE_MAP, "Internal map type");
+				CMP_NUM(builder.root.values_map->find("key2")->second.values_map->size(), 1, "Internal map size");
+				std::string s2 = builder.root.values_map->find("key2")->second.values_map->find("key3")->second.get<std::string>();
 				CMP_TEXT(s2, "val3", "Internal map value");
 			}
 			
 			
 			
-			
-			{
+			/*{
 				// Hex code
 				std::string s = "aaaa\\x55;";
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
 				CMP_TYPE(builder.root.type, LSCL::NODETYPE_SCALAR, "Root node type");
-				std::string s2 = builder.root->get<std::string>();
+				std::string s2 = builder.root.get<std::string>();
 				CMP_TEXT(s2, "aaaa\x55", "Scalar value");
-			}
+			}*/
+			{
+				// Hex code
+				std::string s = "\"aaaa\\x55;\"";
+				tb = data.add(s);
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+				CMP_TYPE(builder.root.type, LSCL::NODETYPE_SCALAR, "Root node type");
+				std::string s2 = builder.root.get<std::string>();
+				CMP_TEXT(s2, "aaaa\x55", "Scalar value");
+			}/*
 			{
 				// Hex code
 				std::string s = "\\x0412;\\x0430;\\x0440;\\x0435;\\x043D;\\x044c;\\x0435;";
@@ -391,13 +380,13 @@ namespace Test
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
 				CMP_TYPE(builder.root.type, LSCL::NODETYPE_SCALAR, "Root node type");
-				std::string s2 = builder.root->get<std::string>();
+				std::string s2 = builder.root.get<std::string>();
 				CMP_TEXT(s2, "Варенье", "Scalar value");
-			}
+			}*/
 			
 			
 			
-			
+			/*
 			{
 				// link creation (quoted)
 				std::string s = "{az: &'link' val}";

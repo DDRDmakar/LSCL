@@ -127,13 +127,171 @@ size_t Builder::get_line(void) const
 }
 
 
-std::string process_scalar_plaintext(const std::string &input)
+std::string Builder::process_scalar_plaintext(const std::string &input)
 {
 	std::cout << '|' << input << '|' << std::endl;
 	return input;
 }
-std::string process_scalar_quotes_single(const std::string &input, const int preserve_newline) { std::cout << '|' << input << '|' << std::endl; return input; }
-std::string process_scalar_quotes_double(const std::string &input, const int preserve_newline) { std::cout << '|' << input << '|' << std::endl; return input; }
+std::string Builder::process_scalar_quotes_single(const std::string &input, const int preserve_newline)
+{
+	std::string accum;
+	
+	bool quote          = false;
+	bool skiping_spaces = false;
+	bool begin          = true;
+	
+	// If function meets triangle bracket in the beginning
+	if (input.front() != '\'' || input.back() != '\'') throw Exception::Exception_nodebuilder("Input scalar form is incorrect");
+	
+	for (const register char c : input)
+	{
+		// Skipping blank space before value start and in the beginning
+		// of each line (if it is multiline scalar value)
+		if (skiping_spaces && preserve_newline != 2)
+		{
+			if (c == ' ' || c == '\t') continue;
+			else skiping_spaces = false;
+		}
+		
+		// Do not trigger on first quote
+		if (begin)
+		{
+			begin = false;
+			continue;
+		}
+		
+		// One single quote escapes another one ('' in config will be parsed as ')
+		if (c == '\'' && !begin)
+		{
+			if (quote) accum.push_back('\'');
+			quote = !quote;
+			continue;
+		}
+		quote = false;
+		
+		// If function meets line-break
+		if (c == '\n')
+		{
+			// If line-break is inside quotes
+			if (preserve_newline) accum.push_back('\n');
+			skiping_spaces = (preserve_newline != 2);
+			continue;
+		}
+		
+		// Push current character into collector
+		accum.push_back(c);
+	} // End for
+	
+	if (!quote) throw Exception::Exception_nodebuilder("Input scalar is not in ' ' quotes");
+	
+	return accum;
+}
+
+
+
+
+std::string Builder::process_scalar_quotes_double(const std::string &input, const int preserve_newline)
+{
+	std::string accum;
+	std::string current_hex_value;
+	
+	bool escaped        = false;
+	bool skiping_spaces = false;
+	bool readhex        = false;
+	
+	// If function meets triangle bracket in the beginning
+	if (input.front() != '\"' || input.back() != '\"') throw Exception::Exception_nodebuilder("Input scalar form is incorrect");
+	
+	for (const register char c : input)
+	{
+		// Skipping blank space before value start and in the beginning
+		// of each line (if it is multiline scalar value)
+		if (skiping_spaces && preserve_newline != 2)
+		{
+			if (c == ' ' || c == '\t') continue;
+			else skiping_spaces = false;
+		}
+		
+		// Escaped characters
+		if (escaped)
+		{
+			switch (c)
+			{
+				case 'n': { accum.push_back('\n'); break; } // Line-break character
+				case 't': { accum.push_back('\t'); break; } // Tabulator character
+				case 's': { accum.push_back(' ');  break; } // Space
+				case 'r': { accum.push_back('\r'); break; } // Carriage return
+				case 'x': {                                 // Hex representation
+					readhex = true;
+					current_hex_value.clear();
+					break;
+				}
+				// In all other cases just save escaped character
+				default:
+				{
+					accum.push_back(c);
+					break;
+				}
+			}
+			escaped = false; // End escape
+			continue;
+		} // endif escaped
+		else // If not escaped
+		{
+			// Begin and end of scalar (quotes)
+			if (c == '\"') continue;
+			
+			// If function meets line-break
+			if (c == '\n')
+			{
+				// If line-break is inside quotes
+				if (preserve_newline) accum.push_back('\n');
+				skiping_spaces = (preserve_newline != 2);
+				continue;
+			}
+		}
+		
+		if (readhex)
+		{
+			if (
+				('0' <= c && c <= '9') ||
+				('a' <= c && c <= 'f') ||
+				('A' <= c && c <= 'F')
+			) current_hex_value.push_back(c);
+			else if (c == ';') // If ending symbol is valid (; in the end if hex symbol surrogate)
+			{
+				// Convert hex string into symbol
+				std::vector<uint32_t> surrogate_vector = { (uint32_t)strtoul(current_hex_value.c_str(), NULL, 16) };
+				current_hex_value = uint32_vector_to_string(surrogate_vector);
+				for (char e : current_hex_value)
+				{
+					accum.push_back(e);
+				}
+				readhex = false;
+			}
+			// Else throw exception
+			else
+			{
+				throw LSCL::Exception::Exception_nodebuilder("Symbol hex code in string is defined incorrectly (" + current_hex_value + "). Correct format is: \\x< hex code >;", filename_, get_line());
+			}
+			
+			continue;
+		}
+		
+		// If function meets escaping character
+		// If it's not escaped, then start escape
+		if (c == '\\') { escaped = !escaped; continue; }
+		
+		// Push current character into collector
+		accum.push_back(c);
+	} // End for
+	
+	// Erase white spaces in the end of unquoted string
+	//if (!quote_double && !quote_single)
+	//	while (answer.back() == ' ' || answer.back() == '\t' || answer.back() == '\n') answer.pop_back();
+	
+	return accum;
+}
 
 
 void Builder::assign_links(void)

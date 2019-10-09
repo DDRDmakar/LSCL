@@ -155,37 +155,37 @@ lscl_map_body
 scalar
 	: SCALAR_PLAINTEXT {
 		$$ = Node_internal(
-			process_scalar_plaintext($1) // Preserve nothing
+			builder.process_scalar_plaintext($1) // Preserve nothing
 		);
 	}
 	| SCALAR_SINGLE_Q {
 		$$ = Node_internal(
-			process_scalar_quotes_single($1, 0) // Preserve nothing
+			builder.process_scalar_quotes_single($1, 0) // Preserve nothing
 		);
 	}
 	| '<' SCALAR_SINGLE_Q '>' {
 		$$ = Node_internal(
-			process_scalar_quotes_single($2, 1) // Preserve newlines
+			builder.process_scalar_quotes_single($2, 1) // Preserve newlines
 		);
 	}
 	| '<' '<' SCALAR_SINGLE_Q '>' '>' {
 		$$ = Node_internal(
-			process_scalar_quotes_single($3, 2) // Preserve everything
+			builder.process_scalar_quotes_single($3, 2) // Preserve everything
 		);
 	}
 	| SCALAR_DOUBLE_Q {
 		$$ = Node_internal(
-			process_scalar_quotes_double($1, 0) // Preserve nothing
+			builder.process_scalar_quotes_double($1, 0) // Preserve nothing
 		);
 	}
 	| '<' SCALAR_DOUBLE_Q '>' {
 		$$ = Node_internal(
-			process_scalar_quotes_double($2, 1) // Preserve newlines
+			builder.process_scalar_quotes_double($2, 1) // Preserve newlines
 		);
 	}
 	| '<' '<' SCALAR_DOUBLE_Q '>' '>' {
 		$$ = Node_internal(
-			process_scalar_quotes_double($3, 2) // Preserve everything
+			builder.process_scalar_quotes_double($3, 2) // Preserve everything
 		);
 	}
 	;

@@ -25,7 +25,12 @@
 // Implementation of yyFlexScanner
 #include "lscl_scanner.hpp"
 #undef  YY_DECL
-#define YY_DECL int LSCL::Nodebuilder::LSCL_Scanner::yylex(LSCL::Nodebuilder::LSCL_Parser::semantic_type* const lval, LSCL::Nodebuilder::LSCL_Parser::location_type *loc)
+#define YY_DECL                                                     \
+	int LSCL::Nodebuilder::LSCL_Scanner::yylex(                     \
+		LSCL::Nodebuilder::LSCL_Parser::semantic_type* const lval,  \
+		LSCL::Nodebuilder::LSCL_Parser::location_type *loc          \
+	)                                                               \
+
 
 // typedef to make the returns for the tokens shorter
 using token = LSCL::Nodebuilder::LSCL_Parser::token;
@@ -71,7 +76,7 @@ using token = LSCL::Nodebuilder::LSCL_Parser::token;
 	return token::SCALAR_SINGLE_Q;
 }
 
-[^\\'\"\\,{\}\[\]\<\>\:/\+\t\n ]([^\\'\"\\,{\}\[\]\<\>\:/\+\n]|\/[^\/])* {
+[^\\'\",{\}\[\]\<\>\:/\+\t\n ]([^'\"\\,{\}\[\]\<\>\:/\+\n]|\/[^\/])* {
 	
 	std::cout << "plaintext: |" << yytext << '|' << std::endl;
 	yylval->build<std::string>(yytext);

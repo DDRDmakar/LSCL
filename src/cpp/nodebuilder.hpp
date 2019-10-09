@@ -79,18 +79,17 @@ namespace LSCL
 			explicit Builder(const std::string &filename = "");
 			virtual ~Builder();
 			
+			std::string process_scalar_plaintext(    const std::string &input);
+			// 0 - nothing, 1 - preserve newlines, 2 - preserve everything
+			std::string process_scalar_quotes_single(const std::string &input, const int preserve_newline);
+			std::string process_scalar_quotes_double(const std::string &input, const int preserve_newline);
+			
 			Node_internal *workpoint; // Pointer to current container
 			bool root_created; // If root node was defined and created yet
 			std::stack<NODEWAY> nodestack; // Stack of the hierarchy we are digging into
 			
 			Node_internal root; // Root of node tree
 		};
-		
-		
-		std::string process_scalar_plaintext(    const std::string &input);
-		// 0 - nothing, 1 - preserve newlines, 2 - preserve everything
-		std::string process_scalar_quotes_single(const std::string &input, const int preserve_newline);
-		std::string process_scalar_quotes_double(const std::string &input, const int preserve_newline);
 		
 	} // Namespace Nodebuilder
 

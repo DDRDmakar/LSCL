@@ -53,7 +53,7 @@
 %code{
 	#include <iostream>
 	#include <cstdlib>
-	#include <fstream>
+	#include <sstream>
 	
 	// include for all builder functions
 	#include "nodebuilder.hpp"
@@ -74,9 +74,14 @@
 %token <std::string>         SCALAR_PLAINTEXT
 %token <std::string>         SCALAR_DOUBLE_Q
 %token <std::string>         SCALAR_SINGLE_Q
+%token <std::string>         LINK_SET
+%token <std::string>         LINK_USE
 
 %type  <Node_internal>                             file
 %type  <Node_internal>                             scalar
+%type  <Node_internal>                             scalar_quoted
+%type  <std::string>                               link_set
+%type  <std::string>                               link_use
 %type  <Node_internal>                             node
 %type  <Node_internal>                             node_2
 %type  <std::shared_ptr<Node_internal::lscl_map>>  lscl_map_body
@@ -103,6 +108,13 @@ node_2
 	: lscl_map { $$ = $1; }
 	| lscl_list { std::cout << "node_2: list\n"; $$ = $1; }
 	| scalar { std::cout << "node_2: scalar\n"; $$ = $1; }
+	| link_use {
+		std::cout << "node_2: link usage: " << $1 << std::endl;
+		Node_internal tn(NODETYPE_LINK);
+		tn.value = $1;
+		$$ = tn;
+		//builder.use_link($1, &tn);
+	}
 	;
 
 lscl_list: '[' lscl_list_body ']' { std::cout << "lscl_list (size = " << $2->size() << ")\n"; $$ = Node_internal($2); } ;
@@ -140,6 +152,18 @@ lscl_map_body
 		);
 		$$ = temp_ptr;
 	}
+	| scalar ':' link_set node {
+		std::cout << "lscl_map_body: single node + link\n";
+		auto temp_ptr = std::make_shared<Node_internal::lscl_map>();
+		temp_ptr->insert(
+			{
+				$1.value, // key
+				$4        // value
+			}
+		);
+		builder.set_link($3, &(temp_ptr->find($1.value)->second));
+		$$ = temp_ptr;
+	}
 	| lscl_map_body ',' scalar ':' node {
 		std::cout << "lscl_map_body: comma-repeated\n";
 		$1->insert(
@@ -150,15 +174,30 @@ lscl_map_body
 		);
 		$$ = $1;
 	}
+	| lscl_map_body ',' scalar ':' link_set node {
+		std::cout << "lscl_map_body: comma-repeated + link\n";
+		$1->insert(
+			{
+				$3.value, // key
+				$6        // value
+			}
+		);
+		builder.set_link($5, &($1->find($3.value)->second));
+		$$ = $1;
+	}
 	;
 
 scalar
 	: SCALAR_PLAINTEXT {
 		$$ = Node_internal(
-			builder.process_scalar_plaintext($1) // Preserve nothing
+			builder.process_scalar_plaintext($1)
 		);
 	}
-	| SCALAR_SINGLE_Q {
+	| scalar_quoted { $$ = $1; }
+	;
+
+scalar_quoted
+	: SCALAR_SINGLE_Q {
 		$$ = Node_internal(
 			builder.process_scalar_quotes_single($1, 0) // Preserve nothing
 		);
@@ -190,10 +229,34 @@ scalar
 	}
 	;
 
+link_set
+	: LINK_SET {
+		std::string ts = $1;
+		ts.erase(ts.begin());
+		$$ = ts;
+	}
+	| '&' scalar_quoted {
+		$$ = $2.value;
+	}
+	;
+
+link_use
+	: LINK_USE {
+		std::string ts = $1;
+		ts.erase(ts.begin());
+		$$ = ts;
+	}
+	| '*' scalar_quoted {
+		$$ = $2.value;
+	}
+	;
+
 %%
 
 
 void LSCL::Nodebuilder::LSCL_Parser::error(const location_type &l, const std::string &err_message)
 {
-   std::cerr << "Error: " << err_message << " at " << l << "\n";
+	std::stringstream ss;
+	ss << err_message << " at " << l;
+	throw LSCL::Exception::Exception_nodebuilder(ss.str(), builder.get_filename());
 }

@@ -151,6 +151,9 @@ namespace LSCL
 		template <typename T>
 		T get(void) const;
 		
+		Node_internal& operator[](const std::string &key);
+		Node_internal& operator[](const size_t       idx);
+		
 		Node_internal* insert_into_list(const Node_internal &node);
 		Node_internal* insert_into_map(const std::string &key, const Node_internal &node);
 		

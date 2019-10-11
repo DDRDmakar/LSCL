@@ -151,4 +151,25 @@ namespace LSCL
 		else return &( inserted->second );
 	}
 	
+	
+	Node_internal& Node_internal::operator[](const std::string &key)
+	{
+		if (type != NODETYPE_MAP) throw LSCL::Exception::Exception_nodebuilder("Called [\"key\"] method on non-map node");
+		else
+		{
+			auto res = values_map->find(key);
+			if (res == values_map->end()) throw LSCL::Exception::Exception_modify("Accessing map with unknown key \"" + key + "\"");
+			else return res->second;
+		}
+	}
+	Node_internal& Node_internal::operator[](const size_t idx)
+	{
+		if (type != NODETYPE_LIST) throw LSCL::Exception::Exception_nodebuilder("Called [idx] method on non-list node");
+		else
+		{
+			if (values_list->size() <= idx) throw LSCL::Exception::Exception_modify("Accessing list with non-existant key (" + std::to_string(idx) + ")");
+			else return values_list->at(idx);
+		}
+	}
+	
 } // Namespace LSCL

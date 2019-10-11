@@ -52,6 +52,8 @@ using token = LSCL::Nodebuilder::LSCL_Parser::token;
 %option noyywrap
 %option c++
 
+link_unquoted     [^'\",{\}\[\]\<\>\:/\+\n&\t\(\) ]+
+
 %%
 %{
     // Code executed at the beginning of yylex
@@ -76,11 +78,25 @@ using token = LSCL::Nodebuilder::LSCL_Parser::token;
 	return token::SCALAR_SINGLE_Q;
 }
 
-[^\\'\",{\}\[\]\<\>\:/\+\t\n ]([^'\"\\,{\}\[\]\<\>\:/\+\n]|\/[^\/])* {
+[^'\",{\}\[\]\<\>\:/\+\n&\*\t ]([^'\",{\}\[\]\<\>\:/\+\n]|\/[^\/])* {
 	
 	std::cout << "plaintext: |" << yytext << '|' << std::endl;
 	yylval->build<std::string>(yytext);
 	return token::SCALAR_PLAINTEXT;
+}
+
+&{link_unquoted} {
+	
+	std::cout << "link creation: |" << yytext << '|' << std::endl;
+	yylval->build<std::string>(yytext);
+	return token::LINK_SET;
+}
+
+\*{link_unquoted} {
+	
+	std::cout << "link usage: |" << yytext << '|' << std::endl;
+	yylval->build<std::string>(yytext);
+	return token::LINK_USE;
 }
 
 (\t|" "|\n)+ ; // Skip spacers

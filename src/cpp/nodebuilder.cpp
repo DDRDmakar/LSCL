@@ -46,8 +46,7 @@ namespace Nodebuilder
  */
 
 Builder::Builder(const std::string &filename) :
-	filename_(filename),
-	root_created(false)
+	filename_(filename)
 {
 	if (filename.empty()) throw LSCL::Exception::Exception_nodebuilder("Empty file name is given", filename, get_line());
 	std::ifstream in_file(filename.c_str());
@@ -56,10 +55,9 @@ Builder::Builder(const std::string &filename) :
 	return;
 }
 
-Builder::Builder(std::istream &input) :
-	root_created(false)
+Builder::Builder(std::istream &input)
 {
-	std::cout << "Builder constructor\n";
+	std::cout << "\033[1;36mBuilder constructor\033[0m\n";
 	if(!input.good() || input.eof()) return;
 	else build_tree(input);
 }
@@ -69,7 +67,7 @@ Builder::Builder(std::istream &input) :
  * Class destructor
  * 
  */
-Builder::~Builder()
+Builder::~Builder(void)
 {
    delete(scanner_);
    scanner_ = nullptr;
@@ -77,6 +75,10 @@ Builder::~Builder()
    parser_ = nullptr;
 }
 
+const std::string& Builder::get_filename(void) const
+{
+	return filename_;
+}
 
 /**
  * This function uses flex-bison parser to build tree
@@ -127,12 +129,111 @@ size_t Builder::get_line(void) const
 }
 
 
-std::string Builder::process_scalar_plaintext(const std::string &input)
+
+
+std::string Builder::process_scalar_plaintext(const std::string &input) const
 {
-	std::cout << '|' << input << '|' << std::endl;
-	return input;
+	std::string accum;
+	std::string current_hex_value;
+	
+	bool escaped        = false;
+	bool skiping_spaces = true;
+	bool readhex        = false;
+	
+	for (const register char c : input)
+	{
+		// Skipping blank space before value start and in the beginning
+		// of each line (if it is multiline scalar value)
+		if (skiping_spaces)
+		{
+			if (c == ' ' || c == '\t') continue;
+			else skiping_spaces = false;
+		}
+		
+		// Escaped characters
+		if (escaped)
+		{
+			switch (c)
+			{
+				case 'n': { accum.push_back('\n'); break; } // Line-break character
+				case 't': { accum.push_back('\t'); break; } // Tabulator character
+				case 's': { accum.push_back(' ');  break; } // Space
+				case 'r': { accum.push_back('\r'); break; } // Carriage return
+				case 'x': {                                 // Hex representation
+					readhex = true;
+					current_hex_value.clear();
+					break;
+				}
+				// In all other cases just save escaped character
+				default:
+				{
+					accum.push_back(c);
+					break;
+				}
+			}
+			escaped = false; // End escape
+			continue;
+		} // endif escaped
+		
+		else // If not escaped
+		{
+			// Begin and end of scalar (quotes)
+			if (c == '\"') continue;
+			
+			// If function meets line-break
+			if (c == '\n')
+			{
+				// If line-break is inside quotes
+				skiping_spaces = true;
+				continue;
+			}
+		}
+		
+		if (readhex)
+		{
+			if (
+				('0' <= c && c <= '9') ||
+				('a' <= c && c <= 'f') ||
+				('A' <= c && c <= 'F')
+			) current_hex_value.push_back(c);
+			else if (c == ';') // If ending symbol is valid (; in the end if hex symbol surrogate)
+			{
+				// Convert hex string into symbol
+				std::vector<uint32_t> surrogate_vector = { (uint32_t)strtoul(current_hex_value.c_str(), NULL, 16) };
+				current_hex_value = uint32_vector_to_string(surrogate_vector);
+				for (char e : current_hex_value)
+				{
+					accum.push_back(e);
+				}
+				readhex = false;
+			}
+			// Else throw exception
+			else
+			{
+				throw LSCL::Exception::Exception_nodebuilder("Symbol hex code in string is defined incorrectly (" + current_hex_value + "). Correct format is: \\x< hex code >;", filename_, get_line());
+			}
+			
+			continue;
+		}
+		
+		// If function meets escaping character
+		// If it's not escaped, then start escape
+		if (c == '\\') { escaped = !escaped; continue; }
+		
+		// Push current character into collector
+		accum.push_back(c);
+	} // End for
+	
+	// Erase white spaces in the end of unquoted string
+	while (is_spacer(accum.back())) accum.pop_back();
+	
+	return accum;
 }
-std::string Builder::process_scalar_quotes_single(const std::string &input, const int preserve_newline)
+
+
+
+
+std::string Builder::process_scalar_quotes_single(const std::string &input, const int preserve_newline) const
 {
 	std::string accum;
 	
@@ -140,7 +241,6 @@ std::string Builder::process_scalar_quotes_single(const std::string &input, cons
 	bool skiping_spaces = false;
 	bool begin          = true;
 	
-	// If function meets triangle bracket in the beginning
 	if (input.front() != '\'' || input.back() != '\'') throw Exception::Exception_nodebuilder("Input scalar form is incorrect");
 	
 	for (const register char c : input)
@@ -172,7 +272,6 @@ std::string Builder::process_scalar_quotes_single(const std::string &input, cons
 		// If function meets line-break
 		if (c == '\n')
 		{
-			// If line-break is inside quotes
 			if (preserve_newline) accum.push_back('\n');
 			skiping_spaces = (preserve_newline != 2);
 			continue;
@@ -190,7 +289,7 @@ std::string Builder::process_scalar_quotes_single(const std::string &input, cons
 
 
 
-std::string Builder::process_scalar_quotes_double(const std::string &input, const int preserve_newline)
+std::string Builder::process_scalar_quotes_double(const std::string &input, const int preserve_newline) const
 {
 	std::string accum;
 	std::string current_hex_value;
@@ -199,7 +298,6 @@ std::string Builder::process_scalar_quotes_double(const std::string &input, cons
 	bool skiping_spaces = false;
 	bool readhex        = false;
 	
-	// If function meets triangle bracket in the beginning
 	if (input.front() != '\"' || input.back() != '\"') throw Exception::Exception_nodebuilder("Input scalar form is incorrect");
 	
 	for (const register char c : input)
@@ -244,7 +342,6 @@ std::string Builder::process_scalar_quotes_double(const std::string &input, cons
 			// If function meets line-break
 			if (c == '\n')
 			{
-				// If line-break is inside quotes
 				if (preserve_newline) accum.push_back('\n');
 				skiping_spaces = (preserve_newline != 2);
 				continue;
@@ -311,6 +408,15 @@ void Builder::assign_links(void)
 	}
 }
 
+
+void Builder::set_link(const std::string &linkname, Node_internal *n)
+{
+	links_.insert( { linkname, n } );
+}
+void Builder::use_link(const std::string &linkname, Node_internal *n)
+{
+	linked_nodes_.insert( { linkname, n } );
+}
 
 } // Namespace Nodebuilder
 

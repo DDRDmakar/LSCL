@@ -75,20 +75,22 @@ namespace LSCL
 			size_t get_line(void) const;
 			
 		public:
-			explicit Builder(std::istream& input);
-			explicit Builder(const std::string &filename = "");
-			virtual ~Builder();
-			
-			std::string process_scalar_plaintext(    const std::string &input);
-			// 0 - nothing, 1 - preserve newlines, 2 - preserve everything
-			std::string process_scalar_quotes_single(const std::string &input, const int preserve_newline);
-			std::string process_scalar_quotes_double(const std::string &input, const int preserve_newline);
-			
-			Node_internal *workpoint; // Pointer to current container
-			bool root_created; // If root node was defined and created yet
-			std::stack<NODEWAY> nodestack; // Stack of the hierarchy we are digging into
 			
 			Node_internal root; // Root of node tree
+			
+			explicit Builder(std::istream& input);
+			explicit Builder(const std::string &filename = "");
+			virtual ~Builder(void);
+			
+			const std::string& get_filename(void) const;
+			
+			void set_link(const std::string &linkname, Node_internal *n);
+			void use_link(const std::string &linkname, Node_internal *n);
+			
+			std::string process_scalar_plaintext(    const std::string &input) const;
+			// 0 - nothing, 1 - preserve newlines, 2 - preserve everything
+			std::string process_scalar_quotes_single(const std::string &input, const int preserve_newline) const;
+			std::string process_scalar_quotes_double(const std::string &input, const int preserve_newline) const;
 		};
 		
 	} // Namespace Nodebuilder

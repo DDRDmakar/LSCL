@@ -265,7 +265,7 @@ namespace Test
 				CMP_TYPE(builder.root.type, LSCL::NODETYPE_SCALAR, "Root node type");
 				std::string s2 = builder.root.get<std::string>();
 				CMP_TEXT(s2, "bbb\nb", "Scalar value");
-			}/*
+			}
 			{
 				// \n should be ignored
 				std::string s = "{key: \'va\nl\'}";
@@ -285,7 +285,7 @@ namespace Test
 				CMP_NUM(builder.root.values_map->size(), 1, "Map size");
 				std::string s2 = builder.root.values_map->find("key")->second.get<std::string>();
 				CMP_TEXT(s2, "va\nl", "Value in map");
-			}*/
+			}
 			
 			
 			
@@ -353,7 +353,7 @@ namespace Test
 			
 			
 			
-			/*{
+			{
 				// Hex code
 				std::string s = "aaaa\\x55;";
 				tb = data.add(s);
@@ -362,7 +362,7 @@ namespace Test
 				CMP_TYPE(builder.root.type, LSCL::NODETYPE_SCALAR, "Root node type");
 				std::string s2 = builder.root.get<std::string>();
 				CMP_TEXT(s2, "aaaa\x55", "Scalar value");
-			}*/
+			}
 			{
 				// Hex code
 				std::string s = "\"aaaa\\x55;\"";
@@ -372,7 +372,7 @@ namespace Test
 				CMP_TYPE(builder.root.type, LSCL::NODETYPE_SCALAR, "Root node type");
 				std::string s2 = builder.root.get<std::string>();
 				CMP_TEXT(s2, "aaaa\x55", "Scalar value");
-			}/*
+			}
 			{
 				// Hex code
 				std::string s = "\\x0412;\\x0430;\\x0440;\\x0435;\\x043D;\\x044c;\\x0435;";
@@ -382,11 +382,11 @@ namespace Test
 				CMP_TYPE(builder.root.type, LSCL::NODETYPE_SCALAR, "Root node type");
 				std::string s2 = builder.root.get<std::string>();
 				CMP_TEXT(s2, "Варенье", "Scalar value");
-			}*/
+			}
 			
 			
 			
-			/*
+			
 			{
 				// link creation (quoted)
 				std::string s = "{az: &'link' val}";
@@ -394,12 +394,11 @@ namespace Test
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
 				CMP_NUM(builder.root.values_map->size(), 1, "Map size");
-				std::string s2 = builder.root->values_map["az"].get<std::string>();
+				std::string s2 = builder.root["az"].get<std::string>();
 				CMP_TEXT(s2, "val", "Value in map");
 				CMP_NUM(builder.links_.size(), 1, "Created links number");
 				CMP_TYPE(builder.links_["link"]->type, LSCL::NODETYPE_SCALAR, "Linked node type");
 			}
-			
 			{
 				// link creation (single word)
 				std::string s = 
@@ -407,29 +406,28 @@ namespace Test
 				"	az: &link val, \n"
 				"	as : *link,    \n"
 				"	as2: *\"link\",\n"
-				"	as3: *<link> , \n"
+				"	as3: *\"li\nnk\" , \n"
 				"	dedy: vaevale  \n"
-				"	<ke>: \"ge\""
+				",	ke: \"ge\""
 				"}\n";
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
 				CMP_NUM(builder.root.values_map->size(), 5, "Map size");
-				std::string s2 = builder.root->values_map["az"].get<std::string>();
+				std::string s2 = builder.root["az"].get<std::string>();
 				CMP_TEXT(s2, "val", "az value");
 				CMP_NUM(builder.links_.size(), 1, "Created links number");
 				CMP_TYPE(builder.links_["link"]->type, LSCL::NODETYPE_SCALAR, "linked node type");
-				CMP_TYPE(builder.root->values_map["as"].type, LSCL::NODETYPE_LINK, "linking node type");
-				s2 = builder.root->values_map["as"].linked->get<std::string>();
+				CMP_TYPE(builder.root["as"].type, LSCL::NODETYPE_LINK, "linking node type");
+				s2 = builder.root["as"].linked->get<std::string>();
 				CMP_TEXT(s2, "val", "as node value");
-				CMP_TYPE(builder.root->values_map["as2"].type, LSCL::NODETYPE_LINK, "as2 node type");
+				CMP_TYPE(builder.root["as2"].type, LSCL::NODETYPE_LINK, "as2 node type");
 				
-				CMP_TYPE(builder.root->values_map["as3"].type, LSCL::NODETYPE_LINK, "as3 type");
+				CMP_TYPE(builder.root["as3"].type, LSCL::NODETYPE_LINK, "as3 type");
 				
-				s2 = builder.root->values_map["ke"].get<std::string>();
+				s2 = builder.root["ke"].get<std::string>();
 				CMP_TEXT(s2, "ge", "ke value");
 			}
-			*/
 		}
 		catch (LSCL::Exception::Exception_nodebuilder &e)
 		{

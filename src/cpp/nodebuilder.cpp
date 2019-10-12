@@ -120,6 +120,11 @@ void Builder::build_tree(std::istream &input)
 	{
 		throw LSCL::Exception::Exception_nodebuilder("Parser failed (code " + std::to_string(parse_status) + ")");
 	}
+	
+	// ================== POST-PROCESSING PART
+	
+	assign_links();
+	
 }
 
 

@@ -413,12 +413,13 @@ namespace Test
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
-				CMP_NUM(builder.root.values_map->size(), 5, "Map size");
+				CMP_NUM(builder.root.values_map->size(), 6, "Map size");
 				std::string s2 = builder.root["az"].get<std::string>();
 				CMP_TEXT(s2, "val", "az value");
 				CMP_NUM(builder.links_.size(), 1, "Created links number");
 				CMP_TYPE(builder.links_["link"]->type, LSCL::NODETYPE_SCALAR, "linked node type");
 				CMP_TYPE(builder.root["as"].type, LSCL::NODETYPE_LINK, "linking node type");
+				TEST_BOOL(builder.root["as"].linked != nullptr, "Link is NULL, pointer is expected");
 				s2 = builder.root["as"].linked->get<std::string>();
 				CMP_TEXT(s2, "val", "as node value");
 				CMP_TYPE(builder.root["as2"].type, LSCL::NODETYPE_LINK, "as2 node type");

@@ -125,11 +125,13 @@ lscl_list_body
 		std::cout << "lscl_list_body: single node\n";
 		auto temp_ptr = std::make_shared<Node_internal::lscl_list>();
 		temp_ptr->push_back($1);
+		if ($1.type == NODETYPE_LINK) builder.use_link($1.value, &(temp_ptr->back())); // We added node into the list, so, we can create link to it
 		$$ = temp_ptr;
 	}
 	| lscl_list_body ',' node  {
 		std::cout << "lscl_list_body: comma-repeated\n";
 		$1->push_back($3);
+		if ($3.type == NODETYPE_LINK) builder.use_link($3.value, &($1->back())); // We added node into the list, so, we can create link to it
 		$$ = $1;
 	}
 	;
@@ -144,45 +146,53 @@ lscl_map_body
 	| scalar ':' node {
 		std::cout << "lscl_map_body: single node\n";
 		auto temp_ptr = std::make_shared<Node_internal::lscl_map>();
-		temp_ptr->insert(
+		auto inserted = temp_ptr->insert(
 			{
 				$1.value, // key
 				$3        // value
 			}
 		);
+		if (!inserted.second) throw LSCL::Exception::Exception_nodebuilder("Element with key \"" + $1.value + "\" not inserted into map", builder.get_filename());
+		if ($3.type == NODETYPE_LINK) builder.use_link($3.value, &(inserted.first->second)); // We added node into the map, so, we can create link to it
 		$$ = temp_ptr;
 	}
 	| scalar ':' link_set node {
 		std::cout << "lscl_map_body: single node + link\n";
 		auto temp_ptr = std::make_shared<Node_internal::lscl_map>();
-		temp_ptr->insert(
+		auto inserted = temp_ptr->insert(
 			{
 				$1.value, // key
 				$4        // value
 			}
 		);
-		builder.set_link($3, &(temp_ptr->find($1.value)->second));
+		if (!inserted.second) throw LSCL::Exception::Exception_nodebuilder("Element with key \"" + $1.value + "\" not inserted into map", builder.get_filename());
+		if ($4.type == NODETYPE_LINK) builder.use_link($4.value, &(inserted.first->second)); // We added node into the map, so, we can create link to it
+		builder.set_link($3, &(inserted.first->second));
 		$$ = temp_ptr;
 	}
 	| lscl_map_body ',' scalar ':' node {
 		std::cout << "lscl_map_body: comma-repeated\n";
-		$1->insert(
+		auto inserted = $1->insert(
 			{
 				$3.value, // key
 				$5        // value
 			}
 		);
+		if (!inserted.second) throw LSCL::Exception::Exception_nodebuilder("Element with key \"" + $3.value + "\" not inserted into map", builder.get_filename());
+		if ($5.type == NODETYPE_LINK) builder.use_link($5.value, &(inserted.first->second)); // We added node into the map, so, we can create link to it
 		$$ = $1;
 	}
 	| lscl_map_body ',' scalar ':' link_set node {
 		std::cout << "lscl_map_body: comma-repeated + link\n";
-		$1->insert(
+		auto inserted = $1->insert(
 			{
 				$3.value, // key
 				$6        // value
 			}
 		);
-		builder.set_link($5, &($1->find($3.value)->second));
+		if (!inserted.second) throw LSCL::Exception::Exception_nodebuilder("Element with key \"" + $3.value + "\" not inserted into map", builder.get_filename());
+		if ($6.type == NODETYPE_LINK) builder.use_link($6.value, &(inserted.first->second)); // We added node into the map, so, we can create link to it
+		builder.set_link($5, &(inserted.first->second));
 		$$ = $1;
 	}
 	;

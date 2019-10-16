@@ -134,7 +134,7 @@ namespace Test
 			
 			{
 				// List
-				std::string s = "[abcdefg, xyz]";
+				std::string s = "[,abcdefg, xyz,]";
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
@@ -403,12 +403,12 @@ namespace Test
 				// link creation (single word)
 				std::string s = 
 				"{\n"
-				"	az: &link val, \n"
-				"	as : *link,    \n"
-				"	as2: *\"link\",\n"
-				"	as3: *\"li\nnk\" , \n"
-				"	dedy: vaevale  \n"
-				",	ke: \"ge\""
+				",	az: &link val     \n"
+				",	as : *link        \n"
+				",	as2: *\"link\"    \n"
+				",	as3: *\"li\nnk\"  \n"
+				",	dedy: vaevale     \n"
+				",	ke: \"ge\"       ,\n"
 				"}\n";
 				tb = data.add(s);
 				std::stringstream ss(s);

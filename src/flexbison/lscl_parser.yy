@@ -117,7 +117,9 @@ node_2
 	}
 	;
 
-lscl_list: '[' lscl_list_body ']' { std::cout << "lscl_list (size = " << $2->size() << ")\n"; $$ = Node_internal($2); } ;
+lscl_list
+	: '[' lscl_list_body ']'     { std::cout << "lscl_list (size = " << $2->size() << ")\n"; $$ = Node_internal($2); } ;
+	| '[' lscl_list_body ',' ']' { std::cout << "lscl_list (size = " << $2->size() << ")\n"; $$ = Node_internal($2); } ;
 
 lscl_list_body
 	: %empty { std::cout << "lscl_list_body: empty\n"; $$ = std::make_shared<Node_internal::lscl_list>(); }
@@ -136,7 +138,10 @@ lscl_list_body
 	}
 	;
 
-lscl_map: '{' lscl_map_body '}' { std::cout << "lscl_map (size = " << $2->size() << ")\n"; $$ = Node_internal($2); } ;
+lscl_map
+	: '{' lscl_map_body '}'     { std::cout << "lscl_map (size = " << $2->size() << ")\n"; $$ = Node_internal($2); }
+	| '{' lscl_map_body ',' '}' { std::cout << "lscl_map (size = " << $2->size() << ")\n"; $$ = Node_internal($2); }
+	;
 
 lscl_map_body
 	: %empty {

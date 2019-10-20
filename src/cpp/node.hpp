@@ -36,22 +36,21 @@ namespace LSCL
 		
 	protected:
 		
-		
-		
 	public:
-		
 		Node(Node_internal &newcore);
-		Node(Node_internal *newcore);
+		Node(Node_internal *newcore = nullptr);
+		Node(const std::unique_ptr<Node_internal> &newcore);
 		
+		NODETYPE get_type(void);
 		Node get_parent(void) const;
 		Node operator[](const std::string &key);
 		Node operator[](const size_t       idx);
 		bool remove(const std::string &key);
 		bool remove(const size_t       idx);
 		void insert(const Node          &element, const size_t idx = SIZE_MAX);
-		void insert(const Node_internal &element, const size_t idx = SIZE_MAX);
+		void insert(      Node_internal *element, const size_t idx = SIZE_MAX);
 		void insert(const Node          &element, const std::string &key);
-		void insert(const Node_internal &element, const std::string &key);
+		void insert(      Node_internal *element, const std::string &key);
 		
 		template <typename T>
 		T get(void) const;
@@ -61,7 +60,8 @@ namespace LSCL
 	template <typename T>
 	T Node::get(void) const
 	{
-		return core->get<T>();
+		if (core->type != NODETYPE_SCALAR) throw Exception::Exception_access("get<>() method called on non-scalar node");
+		return static_cast<LSCL::Scalar*>(core)->get<T>();
 	}
 	
 } // Namespace LSCL

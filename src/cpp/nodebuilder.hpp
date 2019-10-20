@@ -21,9 +21,6 @@
 
 #include <string>
 #include <sstream>
-#include <stack>
-#include <unordered_map>
-#include <memory>
 
 #include "node_internal.hpp"
 
@@ -39,17 +36,6 @@ namespace LSCL
 	
 	namespace Nodebuilder
 	{
-		
-		enum NODEWAY
-		{
-			NODEWAY_MAP    = 1,
-			NODEWAY_LIST   = 2,
-			NODEWAY_SCALAR = 3,
-			NODEWAY_KEY,
-			NODEWAY_COMMA_MAP,
-			NODEWAY_COMMA_LIST
-		};
-		
 		/*
 		* It builds a tree of nodes from text stream
 		* 
@@ -65,10 +51,10 @@ namespace LSCL
 			// Friend function to perform tests
 			friend LSCL::Test::Testdata LSCL::Test::test_builder(void);
 			
-			
+			std::unique_ptr<Node_internal> root_; // Root of node tree
 			std::string filename_; // Name of processed file (empty if no file)
 			std::unordered_map<std::string, Node_internal*> links_; // Named links to nodes
-			std::unordered_map<std::string, Node_internal*> linked_nodes_; // Nodes which should be linked by named links
+			std::unordered_map<std::string, Link*> linked_nodes_;   // Nodes which should be linked by named links
 			
 			void assign_links(void); // Assign links to link names after all objects are created
 			void build_tree(std::istream &input);
@@ -76,18 +62,17 @@ namespace LSCL
 			
 		public:
 			
-			Node_internal root; // Root of node tree
-			
 			explicit Builder(std::istream& input);
 			explicit Builder(const std::string &filename = "");
 			virtual ~Builder(void);
 			
+			void setroot(Node_internal *newroot);
 			const std::string& get_filename(void) const;
 			
 			void set_link(const std::string &linkname, Node_internal *n);
-			void use_link(const std::string &linkname, Node_internal *n);
+			void use_link(const std::string &linkname, Link          *n);
 			
-			std::string process_scalar_plaintext(    const std::string &input) const;
+			std::string process_scalar_plaintext(const std::string &input) const;
 			// 0 - nothing, 1 - preserve newlines, 2 - preserve everything
 			std::string process_scalar_quotes_single(const std::string &input, const int preserve_newline) const;
 			std::string process_scalar_quotes_double(const std::string &input, const int preserve_newline) const;

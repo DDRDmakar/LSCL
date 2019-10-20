@@ -20,9 +20,14 @@
 
 namespace LSCL
 {
+	Node::Node(Node_internal &newcore) : core(&newcore)  {}
+	Node::Node(Node_internal *newcore) : core( newcore)  {}
+	Node::Node(const std::unique_ptr<Node_internal> &newcore) : core(newcore.get()) {}
 	
-	Node::Node(Node_internal &newcore) : core(&newcore) {}
-	Node::Node(Node_internal *newcore) : core(newcore)  {}
+	NODETYPE Node::get_type(void)
+	{
+		return core->type;
+	}
 	
 	Node Node::get_parent(void) const
 	{
@@ -37,38 +42,35 @@ namespace LSCL
 	
 	Node Node::operator[](const size_t idx)
 	{
-		return Node(core->values_list->at(idx));
+		return Node(static_cast<LSCL::List*>(core)->at(idx));
 	}
 	
 	void Node::insert(const Node &element, const size_t idx)
 	{
-		if (idx == SIZE_MAX) // idx == last position
-		{
-			core->values_list->push_back(*element.core);
-		}
-		else
-		{
-			core->values_list->insert(core->values_list->begin() + idx, *element.core);
-		}
+		insert(element.core, idx);
 	}
 	
-	void Node::insert(const Node_internal &element, const size_t idx)
+	void Node::insert(Node_internal *element, const size_t idx)
 	{
+		LSCL::Node_internal::lscl_list &l = static_cast<LSCL::List*>(core)->values_list;
+		
 		if (idx == SIZE_MAX) // idx == last position
 		{
-			core->values_list->push_back(element);
+			l.push_back(element);
 		}
 		else
 		{
-			core->values_list->insert(core->values_list->begin() + idx, element);
-			core->values_list->operator[](idx).parent = core;
+			l.insert(l.begin() + idx, element);
 		}
 	}
 	
 	bool Node::remove(const size_t idx)
 	{
-		if (idx >= core->values_list->size()) return false;
-		core->values_list->erase(core->values_list->begin() + idx);
+		LSCL::Node_internal::lscl_list &l = static_cast<LSCL::List*>(core)->values_list;
+		
+		if (idx >= l.size()) return false;
+		delete l[idx];
+		l.erase(l.begin() + idx);
 		return true;
 	}
 	
@@ -77,30 +79,29 @@ namespace LSCL
 	
 	Node Node::operator[](const std::string &key)
 	{
-		auto res = core->values_map->find(key);
-		if (res != core->values_map->end()) return res->second;
-		else throw LSCL::Exception::Exception_modify("Accessing map with unknown key \"" + key + "\"");
+		return Node(static_cast<LSCL::Map*>(core)->at(key));
 	}
 	
 	void Node::insert(const Node &element, const std::string &key)
 	{
-		auto node_internal_to_insert = *element.core; // Make a full copy of internal node
-		node_internal_to_insert.parent = core;        // Change parent pointer
-		core->values_map->emplace(std::make_pair(key, node_internal_to_insert)); // Insert node
+		static_cast<LSCL::Map*>(core)->values_map.emplace(std::make_pair(key, element.core)); // Insert node
 	}
 	
-	void Node::insert(const Node_internal &element, const std::string &key)
+	void Node::insert(Node_internal *element, const std::string &key)
 	{
-		core->values_map->emplace(std::make_pair(key, element)); // Insert node
-		core->values_map->operator[](key).parent = core;
+		static_cast<LSCL::Map*>(core)->values_map.emplace(std::make_pair(key, element)); // Insert node
+		//core->values_map->operator[](key).parent = core;
 	}
 	
 	bool Node::remove(const std::string &key)
 	{
-		auto res = core->values_map->find(key);
-		if (res != core->values_map->end())
+		LSCL::Node_internal::lscl_map &m = static_cast<LSCL::Map*>(core)->values_map;
+		
+		auto res = m.find(key);
+		if (res != m.end())
 		{
-			core->values_map->erase(res);
+			delete m[key];
+			m.erase(res);
 			return true;
 		}
 		else return false;

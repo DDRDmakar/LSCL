@@ -22,13 +22,127 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include <map>
+#include <list>
+#include <unordered_map>
 
 #include "exception.hpp"
 #include "global.hpp"
 
 namespace LSCL
 {
+	
+	// Declare builder class here to make it a friend of Node_internal base class
+	namespace Nodebuilder
+	{
+		class Builder;
+	}
+	
+	/**
+	 * Each object contains and it's unique NODETYPE value
+	 * even by Node_internal* reference. So, we can understand what
+	 * node type is it.
+	 * Constructor takes pointer to parent class. If it is not provided,
+	 * node is treated as tree root.
+	 * Node could be initialized with list or map of values
+	 * 
+	 * Scalar class - leaf of the tree
+	 * Contains value and methods to interpret it
+	 * 
+	 * List class - list of values, which should be referenced by index
+	 * or iterated through.
+	 * 
+	 * Map class - map of values, referenced by key
+	 */
+	
+	// Abstract type, cannot be created
+	class Node_internal
+	{
+	public:
+		
+		typedef std::vector<Node_internal*>                     lscl_list;
+		typedef std::unordered_map<std::string, Node_internal*> lscl_map;
+		
+		Node_internal *parent;
+		const NODETYPE type;
+		bool has_link;
+		std::string my_link_name;
+		
+		// Constructor
+		Node_internal(
+			Node_internal *parent,
+			const NODETYPE type
+		);
+		// Virtual destructor
+		virtual ~Node_internal(void) = 0;
+		
+		virtual bool is(NODETYPE nodetype) const;
+		
+		virtual size_t size(void) const;
+		virtual Node_internal* at(const std::string &key);
+		virtual Node_internal* at(const size_t       idx);
+	};
+	
+	
+	class Scalar : public Node_internal
+	{
+	public:
+		std::string value; // Scalar value
+		
+		Scalar(std::string value = "", Node_internal *parent = nullptr);
+		~Scalar(void) override;
+		
+		template <typename T>
+		T get(void) const;
+	};
+	
+	
+	class List : public Node_internal
+	{
+	public:
+		lscl_list values_list;
+		
+		List(Node_internal::lscl_list *container = nullptr, Node_internal *parent = nullptr);
+		~List(void) override;
+		
+		size_t size(void) const override;
+		Node_internal* at(const size_t idx) override;
+	};
+	
+	
+	class Map : public Node_internal
+	{
+	public:
+		lscl_map  values_map;
+		
+		Map(Node_internal::lscl_map *container = nullptr, Node_internal *parent = nullptr);
+		~Map(void) override;
+		
+		size_t size(void) const override;
+		Node_internal* at(const std::string &key) override;
+	};
+	
+	
+	class Link : public Node_internal
+	{
+	public:
+		std::list<std::string> address;
+		std::string link_name;
+		Node_internal *linked;
+		
+		Link(const std::string &link_name = "", Node_internal *parent = nullptr);
+		~Link(void) override;
+	};
+	
+	
+	class Node_empty : public Node_internal
+	{
+	public:
+		Node_empty(Node_internal *parent = nullptr);
+		~Node_empty(void) override;
+	};
+	
+	
+	//=====[ GET SCALAR VALUE ]=====//
 	
 	/*
 	 * CHAR_BIT    :   8
@@ -59,115 +173,9 @@ namespace LSCL
 	 * 
 	 */
 	
-	enum SCALARTYPE
-	{
-		SCALARTYPE_NONE,
-		SCALARTYPE_LONGNUMBER,
-		SCALARTYPE_INT8,
-		SCALARTYPE_INT16,
-		SCALARTYPE_INT32,
-		SCALARTYPE_INT64,
-		SCALARTYPE_UINT8,
-		SCALARTYPE_UINT16,
-		SCALARTYPE_UINT32,
-		SCALARTYPE_UINT64,
-		SCALARTYPE_FLOAT,
-		SCALARTYPE_DOUBLE,
-		SCALARTYPE_LONG_DOUBLE
-	};
-	
-	// Declare builder class here to make it a friend of Node_internal base class
-	namespace Nodebuilder
-	{
-		class Builder;
-	}
-	
-	/**
-	 * Each object contains and it's unique NODETYPE value
-	 * even by Node_internal* reference. So, we can understand what
-	 * node type is it.
-	 * Constructor takes pointer to parent class. If it is not provided,
-	 * node is treated as tree root.
-	 * Node could be initialized with list or map of values
-	 * 
-	 * Scalar class - leaf of the tree
-	 * Contains value and methods to interpret it
-	 * 
-	 * List class - list of values, which should be referenced by index
-	 * or iterated through.
-	 * 
-	 * Map class - map of values, referenced by key
-	 */
-	
-	class Node_internal
-	{
-	private:
-		
-	protected:
-		
-	public:
-		
-		friend class Nodebuilder::Builder;
-		friend class Node;
-		
-		typedef std::vector<Node_internal>           lscl_list;
-		typedef std::map<std::string, Node_internal> lscl_map;
-		
-		Node_internal *parent;
-		NODETYPE type;
-		
-		std::string value;                      // SCALAR: scalar value
-		std::shared_ptr<lscl_list> values_list; // LIST: list of values
-		std::shared_ptr<lscl_map>  values_map;  // MAP: map of values
-		Node_internal *linked;                  // Pointer to linked node 
-		
-		// Default constructor
-		Node_internal(void);
-		// Any type (empty) - constructs empty node
-		Node_internal(
-			const NODETYPE nt, 
-			Node_internal *parent = nullptr
-		);
-		// Scalar
-		Node_internal(
-			const std::string &value,
-			Node_internal *parent = nullptr
-		);
-		// List
-		Node_internal(
-			const std::shared_ptr<lscl_list> &values_list,
-			Node_internal *parent = nullptr
-		);
-		// Map
-		Node_internal(
-			const std::shared_ptr<lscl_map> &values_map,
-			Node_internal *parent = nullptr
-		);
-		
-		virtual ~Node_internal(void);
-		
-		bool is(NODETYPE nodetype) const;
-		
-		template <typename T>
-		T get(void) const;
-		
-		Node_internal& operator[](const std::string &key);
-		Node_internal& operator[](const size_t       idx);
-		
-		Node_internal* insert_into_list(const Node_internal &node);
-		Node_internal* insert_into_map(const std::string &key, const Node_internal &node);
-		
-		size_t size(void) const;
-	};
-	
-	
-	
-	
-	//=====[ S C A L A R ]=====//
-	
 	// Numbers
 	template <typename T>
-	T Node_internal::get(void) const
+	T Scalar::get(void) const
 	{
 		T v;
 		if (type == NODETYPE_SCALAR)
@@ -242,13 +250,13 @@ namespace LSCL
 	}
 	
 	// Strings
-	template <> inline std::string Node_internal::get<std::string>(void) const
+	template <> inline std::string Scalar::get<std::string>(void) const
 	{
 		return value;
 	}
 	
 	// Wstrings
-	template <> inline std::wstring Node_internal::get<std::wstring>(void) const
+	template <> inline std::wstring Scalar::get<std::wstring>(void) const
 	{
 		return string_to_wstring(value);
 	}

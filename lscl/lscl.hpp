@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "../src/cpp/node.hpp"
 #include "../src/cpp/nodebuilder.hpp"
 #include "../src/cpp/global.hpp"
 

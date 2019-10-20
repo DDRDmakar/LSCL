@@ -75,6 +75,13 @@ Builder::~Builder(void)
    parser_ = nullptr;
 }
 
+
+void Builder::setroot(Node_internal *newroot)
+{
+	root_ = std::unique_ptr<Node_internal>(newroot);
+}
+
+
 const std::string& Builder::get_filename(void) const
 {
 	return filename_;
@@ -406,7 +413,7 @@ void Builder::assign_links(void)
 		{
 			if (e.second->type == NODETYPE_LINK)
 			{
-				e.second->linked = existing_link->second;
+				static_cast<LSCL::Link*>(e.second)->linked = existing_link->second;
 			}
 			else throw LSCL::Exception::Exception_nodebuilder("Using undefined link \"" + e.first + "\"", filename_, get_line());
 		}
@@ -418,7 +425,7 @@ void Builder::set_link(const std::string &linkname, Node_internal *n)
 {
 	links_.insert( { linkname, n } );
 }
-void Builder::use_link(const std::string &linkname, Node_internal *n)
+void Builder::use_link(const std::string &linkname, Link *n)
 {
 	linked_nodes_.insert( { linkname, n } );
 }

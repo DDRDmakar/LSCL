@@ -62,11 +62,11 @@ TEST_CASE( "Testing uint32 to UTF-8 translation", "[global]" )
 
 TEST_CASE( "Scalar node properties", "[nodes]" )
 {
-	LSCL::Node_internal *root = new LSCL::Node_internal(LSCL::NODETYPE_NONE);
-	REQUIRE(root->type == LSCL::NODETYPE_NONE);
-	REQUIRE(root->is(LSCL::NODETYPE_NONE));
+	LSCL::Node_internal *root = new LSCL::List();
+	REQUIRE(root->type == LSCL::NODETYPE_LIST);
+	REQUIRE(root->is(LSCL::NODETYPE_LIST));
 	REQUIRE(root->parent == nullptr);
-	LSCL::Node_internal scalar(LSCL::NODETYPE_SCALAR, root);
+	LSCL::Scalar scalar("", root);
 	REQUIRE(scalar.parent == root);
 	REQUIRE(scalar.type == LSCL::NODETYPE_SCALAR);
 	REQUIRE(scalar.is(LSCL::NODETYPE_SCALAR));
@@ -76,21 +76,21 @@ TEST_CASE( "Scalar node properties", "[nodes]" )
 }
 
 
-TEST_CASE( "[] access properties", "[nodes]" )
+TEST_CASE( "access properties", "[nodes]" )
 {
-	LSCL::Node_internal n1("value_1");
-	LSCL::Node_internal list(LSCL::NODETYPE_LIST);
+	LSCL::Scalar n1("value_1");
+	LSCL::List l;
 	for (int i = 0; i < 10; ++i)
 	{
-		list.values_list->push_back(
-			LSCL::Node_internal("num_" + std::to_string(i), &list)
+		l.values_list.push_back(
+			new LSCL::Scalar("num_" + std::to_string(i), &l)
 		);
 	}
-	list.values_list->push_back(
-		LSCL::Node_internal("3", &list)
+	l.values_list.push_back(
+		new LSCL::Scalar("3", &l)
 	);
 	
-	REQUIRE(list.size() == 11);
+	REQUIRE(l.size() == 11);
 }
 
 
@@ -117,7 +117,7 @@ ULLONG_MAX  Maximum value for an object of type unsigned long long int    184467
  */
 inline void node_internal_get_int(int64_t num)
 {
-	LSCL::Node_internal n1(std::to_string(num));
+	LSCL::Scalar n1(std::to_string(num));
 	
 	if (num <= UCHAR_MAX  && num >= 0) REQUIRE(n1.get<uint8_t>()  == num);
 	if (num <= USHRT_MAX  && num >= 0) REQUIRE(n1.get<uint16_t>() == num);
@@ -150,7 +150,7 @@ TEST_CASE( "get<> method", "[nodes]" )
 		node_internal_get_int(-i);
 	}
 	
-	LSCL::Node_internal n("0.0");
+	LSCL::Scalar n("0.0");
 	REQUIRE(n.get<float>()       == (float)      0.0);
 	REQUIRE(n.get<double>()      == (double)     0.0);
 	REQUIRE(n.get<long double>() == (long double)0.0);

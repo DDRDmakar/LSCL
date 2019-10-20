@@ -19,10 +19,8 @@
 
 #include "node_internal.hpp"
 
-/* С++17
-
+/* С++17 constexpr example
 #include <type_traits>
-
 template <typename T>
 void foo()
 {
@@ -35,141 +33,126 @@ void foo()
 
 namespace LSCL
 {
-	//=====[ C O N S T R U C T O R S ]=====//
-	
-	// Default constructor
-	Node_internal::Node_internal(void) :
-		parent(nullptr),
-		type(NODETYPE_NONE),
-		linked(nullptr)
+	// Constructor
+	Node_internal::Node_internal(Node_internal *parent, const NODETYPE type) :
+		parent (parent),
+		type (type),
+		has_link (false)
 	{}
 	
-	// Any type (empty)
-	Node_internal::Node_internal(
-		const NODETYPE nt, 
-		Node_internal *parent
-	)
-	: 
-		parent(parent), 
-		type(nt),
-		linked(nullptr)
-	{
-		switch (nt)
-		{
-			case NODETYPE_LIST:
-			{
-				values_list = std::make_shared<lscl_list>();
-				break;
-			}
-			case NODETYPE_MAP:
-			{
-				values_map = std::make_shared<lscl_map>();
-				break;
-			}
-			default: { break; }
-		}
-	}
+	inline Node_internal::~Node_internal(void)
+	{}
 	
-	// Scalar
-	Node_internal::Node_internal(
-		const std::string &value,
-		Node_internal *parent
-	)
-	: 
-		parent(parent), 
-		type(NODETYPE_SCALAR), 
-		value(value),
-		linked(nullptr)
+	bool Node_internal::is(NODETYPE nodetype) const
 	{
+		return nodetype == type;
 	}
-	
-	// List
-	Node_internal::Node_internal(
-		const std::shared_ptr<lscl_list> &values_list,
-		Node_internal *parent
-	)
-	:
-		parent(parent),
-		type(NODETYPE_LIST),
-		values_list(values_list),
-		linked(nullptr)
-	{
-	}
-	
-	// Map
-	Node_internal::Node_internal(
-		const std::shared_ptr<lscl_map> &values_map,
-		Node_internal *parent
-	)
-	:
-		parent(parent),
-		type(NODETYPE_MAP),
-		values_map(values_map),
-		linked(nullptr)
-	{
-	}
-	
-	Node_internal::~Node_internal(void)
-	{
-	}
-	
-	//=====[ M E T H O D S ]=====//
 	
 	size_t Node_internal::size(void) const
 	{
-		switch (type)
+		throw LSCL::Exception::Exception_access("Called size() method on non-list and non-map node");
+	}
+	
+	Node_internal* Node_internal::at(const std::string &key)
+	{
+		(void)key;
+		throw LSCL::Exception::Exception_modify("Trying to access non-list and non-map node with KEY");
+	}
+	
+	Node_internal* Node_internal::at(const size_t idx)
+	{
+		(void)idx;
+		throw LSCL::Exception::Exception_modify("Trying to access non-list and non-map node with INDEX");
+	}
+	
+	
+	
+	
+	Scalar::Scalar(std::string value, Node_internal *parent) :
+		Node_internal(parent, NODETYPE_SCALAR),
+		value    (value)
+	{}
+	
+	Scalar::~Scalar(void)
+	{}
+	
+	
+	
+	
+	List::List(Node_internal::lscl_list *container, Node_internal *parent) :
+		Node_internal(parent, NODETYPE_LIST)
+	{
+		if (container) values_list = *container;
+	}
+	
+	List::~List(void)
+	{
+		for (Node_internal *e : values_list)
 		{
-			case NODETYPE_LIST: { return values_list->size(); break; }
-			case NODETYPE_MAP:  { return values_map->size();  break; }
-			default: throw LSCL::Exception::Exception_access("Called size() method on non-list and non-map node");
+			delete e;
 		}
 	}
 	
-	bool Node_internal::is(NODETYPE nodetype) const { return type == nodetype; }
-	
-	Node_internal* Node_internal::insert_into_list(const Node_internal &node)
+	size_t List::size(void) const
 	{
-		if (type != NODETYPE_LIST) throw LSCL::Exception::Exception_nodebuilder("Called insert_into_list() method on non-list node");
-		
-		values_list->push_back(node);
-		return &( values_list->back() );
+		return values_list.size();
 	}
 	
-	Node_internal* Node_internal::insert_into_map(const std::string &key, const Node_internal &node)
+	Node_internal* List::at(const size_t idx)
 	{
-		if (type != NODETYPE_MAP) throw LSCL::Exception::Exception_nodebuilder("Called insert_into_map() method on non-map node");
-		
-		values_map->insert(
-			{
-				key,
-				node
-			}
-		);
-		
-		auto inserted = values_map->find(key);
-		if (inserted == values_map->end()) return nullptr;
-		else return &( inserted->second );
+		if (values_list.size() >= idx) return values_list.at(idx);
+		else throw LSCL::Exception::Exception_modify("Accessing list with non-existant key (" + std::to_string(idx) + ")");
 	}
 	
 	
-	Node_internal& Node_internal::operator[](const std::string &key)
+	
+	
+	Map::Map(Node_internal::lscl_map *container, Node_internal *parent) :
+		Node_internal(parent, NODETYPE_MAP)
 	{
-		if (type != NODETYPE_MAP) throw LSCL::Exception::Exception_nodebuilder("Called [\"key\"] method on non-map node");
-		else
+		if (container) values_map = *container;
+	}
+	
+	Map::~Map(void)
+	{
+		for (auto &e : values_map)
 		{
-			auto res = values_map->find(key);
-			if (res == values_map->end()) throw LSCL::Exception::Exception_modify("Accessing map with unknown key \"" + key + "\"");
-			else return res->second;
+			delete e.second;
 		}
 	}
-	Node_internal& Node_internal::operator[](const size_t idx)
+	
+	size_t Map::size(void) const
 	{
-		if (type != NODETYPE_LIST) throw LSCL::Exception::Exception_nodebuilder("Called [idx] method on non-list node");
-		else
-		{
-			if (values_list->size() <= idx) throw LSCL::Exception::Exception_modify("Accessing list with non-existant key (" + std::to_string(idx) + ")");
-			else return values_list->at(idx);
-		}
+		return values_map.size();
 	}
+	
+	Node_internal* Map::at(const std::string &key)
+	{
+		auto res = values_map.find(key);
+		if (res == values_map.end()) throw LSCL::Exception::Exception_modify("Accessing map with unknown key \"" + key + "\"");
+		else return res->second;
+	}
+	
+	
+	
+	
+	Link::Link(const std::string &link_name, Node_internal *parent) :
+		Node_internal(parent, NODETYPE_LINK),
+		link_name (link_name),
+		linked (nullptr)
+	{}
+	
+	Link::~Link(void)
+	{}
+	
+	
+	
+	
+	Node_empty::Node_empty(Node_internal *parent) :
+		Node_internal(parent, NODETYPE_NONE)
+	{}
+	
+	Node_empty::~Node_empty(void)
+	{}
 	
 } // Namespace LSCL

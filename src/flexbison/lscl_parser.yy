@@ -76,17 +76,23 @@
 %token <std::string>         SCALAR_SINGLE_Q
 %token <std::string>         LINK_SET
 %token <std::string>         LINK_USE
+%token <std::string>         LINK_COPY
 
 %type  <LSCL::Scalar*>                             scalar
 %type  <LSCL::Scalar*>                             scalar_quoted
 %type  <std::string>                               link_set
 %type  <std::string>                               link_use
+%type  <std::string>                               link_copy
 %type  <Node_internal*>                            node
+%type  <Node_internal*>                            node_1
 %type  <Node_internal*>                            node_2
-%type  <Node_internal::lscl_map*>                  lscl_map_body
+%type  <LSCL::Map::lscl_map*>                      lscl_map_body
 %type  <Node_internal*>                            lscl_map
-%type  <Node_internal::lscl_list*>                 lscl_list_body
+%type  <LSCL::List::lscl_list*>                    lscl_list_body
 %type  <Node_internal*>                            lscl_list
+
+%type <Link::lscl_path*>              reference_body
+%type <std::string>                   reference_newelement
 
 %locations
 
@@ -99,7 +105,15 @@ file
 	;
 
 node
-	: node_2 { std::cout << "node\n"; $$ = $1; }
+	: node_1 { $$ = $1; }
+	| link_set node_1 {
+		builder.set_link($1, $2);
+		$$ = $2;
+	}
+	;
+
+node_1
+	: node_2 { $$ = $1; }
 	| node '+' node_2 { $$ = $1; }
 	;
 
@@ -109,7 +123,13 @@ node_2
 	| scalar { std::cout << "node_2: scalar\n"; $$ = $1; }
 	| link_use {
 		std::cout << "node_2: link usage: " << $1 << std::endl;
-		Link *tl = new Link($1);
+		Link *tl = new Link($1, false, false);
+		builder.use_link($1, tl);
+		$$ = tl;
+	}
+	| link_copy {
+		std::cout << "node_2: linked node copying: " << $1 << std::endl;
+		Link *tl = new Link($1, false, true);
 		builder.use_link($1, tl);
 		$$ = tl;
 	}
@@ -127,10 +147,10 @@ lscl_list
 	;
 
 lscl_list_body
-	: %empty { std::cout << "lscl_list_body: empty\n"; $$ = new Node_internal::lscl_list(); }
+	: %empty { std::cout << "lscl_list_body: empty\n"; $$ = new List::lscl_list(); }
 	| node   {
 		std::cout << "lscl_list_body: single node\n";
-		auto temp_ptr = new Node_internal::lscl_list();
+		auto temp_ptr = new List::lscl_list();
 		temp_ptr->push_back($1);
 		$$ = temp_ptr;
 	}
@@ -155,31 +175,18 @@ lscl_map
 lscl_map_body
 	: %empty {
 		std::cout << "lscl_map_body: empty\n";
-		$$ = new Node_internal::lscl_map();
+		$$ = new Map::lscl_map();
 	}
 	| scalar ':' node {
 		std::cout << "lscl_map_body: single node\n";
-		auto temp_ptr = new Node_internal::lscl_map();
+		auto temp_ptr = new Map::lscl_map();
 		auto inserted = temp_ptr->insert(
 			{
 				$1->value, // key
-				$3        // value
+				$3         // value
 			}
 		);
 		if (!inserted.second) throw LSCL::Exception::Exception_nodebuilder("Element with key \"" + $1->value + "\" not inserted into map", builder.get_filename());
-		$$ = temp_ptr;
-	}
-	| scalar ':' link_set node {
-		std::cout << "lscl_map_body: single node + link\n";
-		auto temp_ptr = new Node_internal::lscl_map();
-		auto inserted = temp_ptr->insert(
-			{
-				$1->value, // key
-				$4        // value
-			}
-		);
-		if (!inserted.second) throw LSCL::Exception::Exception_nodebuilder("Element with key \"" + $1->value + "\" not inserted into map", builder.get_filename());
-		builder.set_link($3, inserted.first->second);
 		$$ = temp_ptr;
 	}
 	| lscl_map_body ',' scalar ':' node {
@@ -187,22 +194,10 @@ lscl_map_body
 		auto inserted = $1->insert(
 			{
 				$3->value, // key
-				$5        // value
+				$5         // value
 			}
 		);
 		if (!inserted.second) throw LSCL::Exception::Exception_nodebuilder("Element with key \"" + $3->value + "\" not inserted into map", builder.get_filename());
-		$$ = $1;
-	}
-	| lscl_map_body ',' scalar ':' link_set node {
-		std::cout << "lscl_map_body: comma-repeated + link\n";
-		auto inserted = $1->insert(
-			{
-				$3->value, // key
-				$6        // value
-			}
-		);
-		if (!inserted.second) throw LSCL::Exception::Exception_nodebuilder("Element with key \"" + $3->value + "\" not inserted into map", builder.get_filename());
-		builder.set_link($5, inserted.first->second);
 		$$ = $1;
 	}
 	;
@@ -260,6 +255,7 @@ link_set
 	}
 	;
 
+// Link to node
 link_use
 	: LINK_USE {
 		std::string ts = $1;  // Temporary string
@@ -268,6 +264,45 @@ link_use
 	}
 	| '*' scalar_quoted {
 		$$ = $2->value;        // Just return $2 text
+	}
+	;
+
+// Create a copy of linked node
+link_copy
+	: LINK_COPY {
+		std::string ts = $1;  // Temporary string
+		ts.erase(ts.begin()); // Remove first symbol
+		$$ = ts;              // Return as name
+	}
+	| '@' scalar_quoted {
+		$$ = $2->value;        // Just return $2 text
+	}
+	;
+
+// Brackets with path to node inside it
+reference_bracket_open:  '(' | '(' '.' ;
+reference_bracket_close: ')' | '.' ')' ;
+reference
+	: '(' reference_body ')' {
+	}
+	;
+
+reference_newelement
+	: SCALAR_PLAINTEXT {
+		$$ = $1;
+	}
+	| scalar_quoted {
+		$$ = $1;
+	}
+	;
+
+reference_body
+	: reference_newelement {
+		Link::lscl_path *temp_ptr = new Link::lscl_path;
+		temp_ptr->push_back($1);
+	}
+	| reference_body '.' reference_newelement {
+		$$->push_back($3);
 	}
 	;
 

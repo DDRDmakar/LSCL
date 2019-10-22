@@ -59,9 +59,6 @@ namespace LSCL
 	{
 	public:
 		
-		typedef std::vector<Node_internal*>                     lscl_list;
-		typedef std::unordered_map<std::string, Node_internal*> lscl_map;
-		
 		Node_internal *parent;
 		const NODETYPE type;
 		bool has_link;
@@ -99,9 +96,11 @@ namespace LSCL
 	class List : public Node_internal
 	{
 	public:
+		typedef std::vector<Node_internal*> lscl_list;
+		
 		lscl_list values_list;
 		
-		List(Node_internal::lscl_list *container = nullptr, Node_internal *parent = nullptr);
+		List(lscl_list *container = nullptr, Node_internal *parent = nullptr);
 		~List(void) override;
 		
 		size_t size(void) const override;
@@ -112,9 +111,11 @@ namespace LSCL
 	class Map : public Node_internal
 	{
 	public:
+		typedef std::unordered_map<std::string, Node_internal*> lscl_map;
+		
 		lscl_map  values_map;
 		
-		Map(Node_internal::lscl_map *container = nullptr, Node_internal *parent = nullptr);
+		Map(lscl_map *container = nullptr, Node_internal *parent = nullptr);
 		~Map(void) override;
 		
 		size_t size(void) const override;
@@ -125,11 +126,27 @@ namespace LSCL
 	class Link : public Node_internal
 	{
 	public:
-		std::list<std::string> address;
-		std::string link_name;
-		Node_internal *linked;
+		typedef std::list<std::string> lscl_path;
 		
-		Link(const std::string &link_name = "", Node_internal *parent = nullptr);
+		std::string link_name;
+		bool linktype;          // 0 - link (just string), 1 - reference (absolute path to node)
+		bool copy;              // If we need to create a full copy of linked node
+		Node_internal *linked;
+		lscl_path address;
+		
+		// Link constructor
+		Link(
+			const std::string &link_name,
+			const bool linktype,
+			const bool copy = false,
+			Node_internal *parent = nullptr
+		);
+		// Reference constructor
+		Link(
+			const bool linktype,
+			const bool copy = false,
+			Node_internal *parent = nullptr
+		);
 		~Link(void) override;
 	};
 	
@@ -140,6 +157,11 @@ namespace LSCL
 		Node_empty(Node_internal *parent = nullptr);
 		~Node_empty(void) override;
 	};
+	
+	
+	
+	
+	
 	
 	
 	//=====[ GET SCALAR VALUE ]=====//

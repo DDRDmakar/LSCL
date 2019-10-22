@@ -79,7 +79,7 @@ namespace LSCL
 	
 	
 	
-	List::List(Node_internal::lscl_list *container, Node_internal *parent) :
+	List::List(lscl_list *container, Node_internal *parent) :
 		Node_internal(parent, NODETYPE_LIST)
 	{
 		if (container) values_list = *container;
@@ -107,7 +107,7 @@ namespace LSCL
 	
 	
 	
-	Map::Map(Node_internal::lscl_map *container, Node_internal *parent) :
+	Map::Map(lscl_map *container, Node_internal *parent) :
 		Node_internal(parent, NODETYPE_MAP)
 	{
 		if (container) values_map = *container;
@@ -136,9 +136,18 @@ namespace LSCL
 	
 	
 	
-	Link::Link(const std::string &link_name, Node_internal *parent) :
+	Link::Link(const std::string &link_name, const bool linktype, const bool copy, Node_internal *parent) :
 		Node_internal(parent, NODETYPE_LINK),
 		link_name (link_name),
+		linktype (linktype),
+		copy (copy),
+		linked (nullptr)
+	{}
+	
+	Link::Link(const bool linktype, const bool copy, Node_internal *parent) :
+		Node_internal(parent, NODETYPE_LINK),
+		linktype (linktype),
+		copy (copy),
 		linked (nullptr)
 	{}
 	

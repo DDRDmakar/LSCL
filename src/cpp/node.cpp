@@ -52,7 +52,7 @@ namespace LSCL
 	
 	void Node::insert(Node_internal *element, const size_t idx)
 	{
-		LSCL::Node_internal::lscl_list &l = static_cast<LSCL::List*>(core)->values_list;
+		LSCL::List::lscl_list &l = static_cast<LSCL::List*>(core)->values_list;
 		
 		if (idx == SIZE_MAX) // idx == last position
 		{
@@ -66,7 +66,7 @@ namespace LSCL
 	
 	bool Node::remove(const size_t idx)
 	{
-		LSCL::Node_internal::lscl_list &l = static_cast<LSCL::List*>(core)->values_list;
+		LSCL::List::lscl_list &l = static_cast<LSCL::List*>(core)->values_list;
 		
 		if (idx >= l.size()) return false;
 		delete l[idx];
@@ -95,7 +95,7 @@ namespace LSCL
 	
 	bool Node::remove(const std::string &key)
 	{
-		LSCL::Node_internal::lscl_map &m = static_cast<LSCL::Map*>(core)->values_map;
+		LSCL::Map::lscl_map &m = static_cast<LSCL::Map*>(core)->values_map;
 		
 		auto res = m.find(key);
 		if (res != m.end())

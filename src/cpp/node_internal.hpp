@@ -126,7 +126,13 @@ namespace LSCL
 	class Link : public Node_internal
 	{
 	public:
-		typedef std::list<std::string> lscl_path;
+		typedef struct lscl_path_element
+		{
+			std::string text;
+			size_t      idx;
+			bool        is_idx;
+		} lscl_path_element;
+		typedef std::list<lscl_path_element> lscl_path;
 		
 		std::string link_name;
 		bool linktype;          // 0 - link (just string), 1 - reference (absolute path to node)

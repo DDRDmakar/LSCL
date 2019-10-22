@@ -430,6 +430,25 @@ namespace Test
 				s2 = Node(builder.root_->at("ke")).get<std::string>();
 				CMP_TEXT(s2, "ge", "ke value");
 			}
+			{
+				std::string s = 
+				"{"
+				",    kek:    kok"
+				",    lel:    {lel: {lel: {lel:lol     }}   }"
+				",    lesley: [one, two, three, {\"ключ\": \"значение\"}, five]"
+				",    КЛЮЧИК   :    *(lesley.[3].ключ)"
+				",    ключик0  :    *(lesley.[1])"
+				",    ключик1  :    *(\"kek\")"
+				",    ключик2  :    *(kek)"
+				",    ключик3  :    *(lel.lel.lel.lel)"
+				",    ключик4  :    *('lel'.lel.lel.lel)"
+				",    ключик5  :    *(lel.'lel'.lel.lel)"
+				",    ключик6  :    *(lel.lel.lel.'lel')"
+				"}";
+				tb = data.add(s);
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+			}
 		}
 		catch (LSCL::Exception::Exception_nodebuilder &e)
 		{

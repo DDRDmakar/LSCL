@@ -77,6 +77,7 @@
 %token <std::string>         LINK_SET
 %token <std::string>         LINK_USE
 %token <std::string>         LINK_COPY
+%token <std::string>         NUM
 
 %type  <LSCL::Scalar*>                             scalar
 %type  <LSCL::Scalar*>                             scalar_quoted
@@ -92,7 +93,7 @@
 %type  <Node_internal*>                            lscl_list
 
 %type <Link::lscl_path*>              reference_body
-%type <std::string>                   reference_newelement
+%type <Link::lscl_path_element>       reference_newelement
 
 %locations
 
@@ -289,10 +290,13 @@ reference
 
 reference_newelement
 	: SCALAR_PLAINTEXT {
-		$$ = $1;
+		$$ = {$1, 0, false};
 	}
 	| scalar_quoted {
-		$$ = $1;
+		$$ = {$1, 0, false};
+	}
+	| '[' NUM ']' {
+		$$ = {"", 4, true};
 	}
 	;
 

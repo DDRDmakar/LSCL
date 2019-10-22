@@ -106,6 +106,12 @@ link_unquoted     [^ '\",{\}\[\]\<\>\:/\+\n&\t\(\)@]+
 	return token::LINK_COPY;
 }
 
+([0-9]+)|(0x[0-9a-fA-F]+) {
+	std::cout << "num: |" << yytext << '|' << std::endl;
+	yylval->build<std::string>(yytext);
+	return token::NUM;
+}
+
 (\t|" "|\n)+ ; // Skip spacers
 
 . {

@@ -66,7 +66,7 @@ TEST_CASE( "Scalar node properties", "[nodes]" )
 	REQUIRE(root->type == LSCL::NODETYPE_LIST);
 	REQUIRE(root->is(LSCL::NODETYPE_LIST));
 	REQUIRE(root->parent == nullptr);
-	LSCL::Scalar scalar("", root);
+	LSCL::Scalar scalar("", "", root);
 	REQUIRE(scalar.parent == root);
 	REQUIRE(scalar.type == LSCL::NODETYPE_SCALAR);
 	REQUIRE(scalar.is(LSCL::NODETYPE_SCALAR));
@@ -83,11 +83,11 @@ TEST_CASE( "access properties", "[nodes]" )
 	for (int i = 0; i < 10; ++i)
 	{
 		l.values_list.push_back(
-			new LSCL::Scalar("num_" + std::to_string(i), &l)
+			new LSCL::Scalar("num_" + std::to_string(i), "", &l)
 		);
 	}
 	l.values_list.push_back(
-		new LSCL::Scalar("3", &l)
+		new LSCL::Scalar("3", "", &l)
 	);
 	
 	REQUIRE(l.size() == 11);

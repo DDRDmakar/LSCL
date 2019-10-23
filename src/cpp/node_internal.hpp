@@ -84,8 +84,13 @@ namespace LSCL
 	{
 	public:
 		std::string value; // Scalar value
+		std::string initial_form;
 		
-		Scalar(std::string value = "", Node_internal *parent = nullptr);
+		Scalar(
+			std::string value = "", 
+			std::string initial_form = "", 
+			Node_internal *parent = nullptr
+		);
 		~Scalar(void) override;
 		
 		template <typename T>

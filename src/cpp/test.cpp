@@ -307,14 +307,14 @@ namespace Test
 			}
 			{
 				// Nested map
-				std::string s = "{key: val, key2: {key3: val3}}";
+				std::string s = "{key: '''''', key2: {key3: val3}}";
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
 				CMP_TYPE(builder.root_->type, LSCL::NODETYPE_MAP, "External map type");
 				CMP_NUM(builder.root_->size(), 2, "External map size");
 				std::string s2 = Node(builder.root_->at("key")).get<std::string>();
-				CMP_TEXT(s2, "val", "External map value");
+				CMP_TEXT(s2, "\'\'", "External map value");
 				CMP_TYPE(builder.root_->at("key2")->type, LSCL::NODETYPE_MAP, "Internal map type");
 				CMP_NUM(builder.root_->at("key2")->size(), 1, "Internal map size");
 				s2 = Node(builder.root_->at("key2")->at("key3")).get<std::string>();

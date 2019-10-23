@@ -52,7 +52,7 @@ using token = LSCL::Nodebuilder::LSCL_Parser::token;
 %option noyywrap
 %option c++
 
-link_unquoted     [^ '\",{\}\[\]\<\>\:/\+\n&\t\(\)@]+
+link_unquoted     [^ '\",\(\)\{\}\[\]\<\>\:/\+\n&\t\(\)@]+
 
 %%
 %{
@@ -78,7 +78,7 @@ link_unquoted     [^ '\",{\}\[\]\<\>\:/\+\n&\t\(\)@]+
 	return token::SCALAR_SINGLE_Q;
 }
 
-[^ '\",{\}\[\]\<\>\:/\+\n&\*\t@]([^'\",{\}\[\]\<\>\:/\+\n@]|\/[^\/])* {
+[^ '\",\(\)\{\}\[\]\<\>\:/\+\n&\*\t@]([^'\",\(\)\{\}\[\]\<\>\:/\+\n@]|\/[^\/])* {
 	
 	std::cout << "plaintext: |" << yytext << '|' << std::endl;
 	yylval->build<std::string>(yytext);
@@ -104,12 +104,6 @@ link_unquoted     [^ '\",{\}\[\]\<\>\:/\+\n&\t\(\)@]+
 	std::cout << "linked node copying: |" << yytext << '|' << std::endl;
 	yylval->build<std::string>(yytext);
 	return token::LINK_COPY;
-}
-
-([0-9]+)|(0x[0-9a-fA-F]+) {
-	std::cout << "num: |" << yytext << '|' << std::endl;
-	yylval->build<std::string>(yytext);
-	return token::NUM;
 }
 
 (\t|" "|\n)+ ; // Skip spacers

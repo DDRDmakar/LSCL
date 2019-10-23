@@ -77,7 +77,6 @@
 %token <std::string>         LINK_SET
 %token <std::string>         LINK_USE
 %token <std::string>         LINK_COPY
-%token <std::string>         NUM
 
 %type  <LSCL::Scalar*>                             scalar
 %type  <LSCL::Scalar*>                             scalar_quoted
@@ -206,7 +205,8 @@ lscl_map_body
 scalar
 	: SCALAR_PLAINTEXT {
 		$$ = new Scalar(
-			builder.process_scalar_plaintext($1)
+			builder.process_scalar_plaintext($1),
+			$1
 		);
 	}
 	| scalar_quoted { $$ = $1; }
@@ -215,32 +215,38 @@ scalar
 scalar_quoted
 	: SCALAR_SINGLE_Q {
 		$$ = new Scalar(
-			builder.process_scalar_quotes_single($1, 0) // Preserve nothing
+			builder.process_scalar_quotes_single($1, 0), // Preserve nothing
+			$1
 		);
 	}
 	| '<' SCALAR_SINGLE_Q '>' {
 		$$ = new Scalar(
-			builder.process_scalar_quotes_single($2, 1) // Preserve newlines
+			builder.process_scalar_quotes_single($2, 1), // Preserve newlines
+			$2
 		);
 	}
 	| '<' '<' SCALAR_SINGLE_Q '>' '>' {
 		$$ = new Scalar(
-			builder.process_scalar_quotes_single($3, 2) // Preserve everything
+			builder.process_scalar_quotes_single($3, 2), // Preserve everything
+			$3
 		);
 	}
 	| SCALAR_DOUBLE_Q {
 		$$ = new Scalar(
-			builder.process_scalar_quotes_double($1, 0) // Preserve nothing
+			builder.process_scalar_quotes_double($1, 0), // Preserve nothing
+			$1
 		);
 	}
 	| '<' SCALAR_DOUBLE_Q '>' {
 		$$ = new Scalar(
-			builder.process_scalar_quotes_double($2, 1) // Preserve newlines
+			builder.process_scalar_quotes_double($2, 1), // Preserve newlines
+			$2
 		);
 	}
 	| '<' '<' SCALAR_DOUBLE_Q '>' '>' {
 		$$ = new Scalar(
-			builder.process_scalar_quotes_double($3, 2) // Preserve everything
+			builder.process_scalar_quotes_double($3, 2), // Preserve everything
+			$3
 		);
 	}
 	;
@@ -266,6 +272,9 @@ link_use
 	| '*' scalar_quoted {
 		$$ = $2->value;        // Just return $2 text
 	}
+	| '*' reference {
+		$$ = "ssssssss";
+	}
 	;
 
 // Create a copy of linked node
@@ -281,32 +290,45 @@ link_copy
 	;
 
 // Brackets with path to node inside it
-reference_bracket_open:  '(' | '(' '.' ;
-reference_bracket_close: ')' | '.' ')' ;
 reference
 	: '(' reference_body ')' {
+		std::cout << "REFERENCE ";
+		
+		for (const auto &e : *$2)
+		{
+			std::cout << e.text << '|' << e.idx << '|' << e.is_idx << "    ";
+		}
+		std::cout << std::endl;
+		
 	}
 	;
 
 reference_newelement
 	: SCALAR_PLAINTEXT {
+		std::cout << "Plaintext reference element" << std::endl;
 		$$ = {$1, 0, false};
 	}
 	| scalar_quoted {
-		$$ = {$1, 0, false};
+		std::cout << "Quoted reference element" << std::endl;
+		$$ = {$1->value, 0, false};
 	}
-	| '[' NUM ']' {
+	| '['  SCALAR_PLAINTEXT ']' {
+		std::cout << "Index reference element" << std::endl;
 		$$ = {"", 4, true};
 	}
 	;
 
 reference_body
 	: reference_newelement {
+		std::cout << "Reference first element" << std::endl;
 		Link::lscl_path *temp_ptr = new Link::lscl_path;
 		temp_ptr->push_back($1);
+		$$ = temp_ptr;
 	}
-	| reference_body '.' reference_newelement {
-		$$->push_back($3);
+	| reference_body reference_newelement {
+		std::cout << "Reference next element" << std::endl;
+		$1->push_back($2);
+		$$ = $1;
 	}
 	;
 

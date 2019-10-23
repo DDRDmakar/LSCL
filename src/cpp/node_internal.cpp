@@ -68,9 +68,10 @@ namespace LSCL
 	
 	
 	
-	Scalar::Scalar(std::string value, Node_internal *parent) :
+	Scalar::Scalar(std::string value, std::string initial_form, Node_internal *parent) :
 		Node_internal(parent, NODETYPE_SCALAR),
-		value    (value)
+		value (value),
+		initial_form (initial_form)
 	{}
 	
 	Scalar::~Scalar(void)

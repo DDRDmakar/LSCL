@@ -114,7 +114,9 @@ node
 
 node_1
 	: node_2 { $$ = $1; }
-	| node '+' node_2 { $$ = $1; }
+	| node_1 '+' node_2 {
+		$$ = $1;
+	}
 	;
 
 node_2

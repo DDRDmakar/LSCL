@@ -52,7 +52,7 @@ using token = LSCL::Nodebuilder::LSCL_Parser::token;
 %option noyywrap
 %option c++
 
-link_unquoted     [^ '\",\(\)\{\}\[\]\<\>\:/\+\n&\t\(\)@]+
+link_unquoted     [^ '\",\{\}\[\]\<\>\:/\+\n&\t\(\)@]+
 
 %%
 %{

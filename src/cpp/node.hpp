@@ -60,7 +60,26 @@ namespace LSCL
 	template <typename T>
 	T Node::get(void) const
 	{
-		if (core->type != NODETYPE_SCALAR) throw Exception::Exception_access("get<>() method called on non-scalar node");
+		switch (core->type)
+		{
+			case NODETYPE_SCALAR:
+			{
+				return static_cast<LSCL::Scalar*>(core)->get<T>();
+				break;
+			}
+			case NODETYPE_LINK:
+			{
+				const Link &coreref = *( static_cast<LSCL::Link*>(core) );
+				if (coreref.linked == nullptr) throw Exception::Exception_access("get<>() method called with invalid link");
+				return static_cast<LSCL::Scalar*>(coreref.linked)->get<T>();
+				break;
+			}
+			default:
+			{
+				throw Exception::Exception_access("get<>() method called on non-scalar node");
+				break;
+			}
+		}
 		return static_cast<LSCL::Scalar*>(core)->get<T>();
 	}
 	

@@ -156,6 +156,7 @@ namespace LSCL
 		Node_internal(parent, NODETYPE_LINK),
 		linktype (true),
 		copy (copy),
+		linked (nullptr),
 		address (*address)
 	{}
 	

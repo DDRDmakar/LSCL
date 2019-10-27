@@ -60,6 +60,7 @@ namespace LSCL
 			void assign_links(void); // Assign links to link names after all objects are created
 			void build_tree(std::istream &input);
 			size_t get_line(void) const;
+			Node_internal* dig(const Link::lscl_path &path); // Get pointer to node referenced by given path from root
 			
 		public:
 			

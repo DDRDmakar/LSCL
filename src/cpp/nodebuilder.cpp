@@ -413,10 +413,14 @@ void Builder::assign_links(void)
 		{
 			if (e.second->type == NODETYPE_LINK)
 			{
-				static_cast<LSCL::Link*>(e.second)->linked = existing_link->second;
+				e.second->linked = existing_link->second;
 			}
 			else throw LSCL::Exception::Exception_nodebuilder("Using undefined link \"" + e.first + "\"", filename_, get_line());
 		}
+	}
+	for (auto &e : references_)
+	{
+		e->linked = dig(e->address);
 	}
 }
 
@@ -433,6 +437,20 @@ void Builder::use_ref(Link *n)
 {
 	references_.push_back(n);
 }
+
+
+Node_internal* Builder::dig(const Link::lscl_path &path)
+{
+	register Node_internal *result = root_.get(); // result is tree root pointer
+	for (const auto &e : path)
+	{
+		result = e.is_idx ?
+			static_cast<List*>(result)->at(e.idx) :
+			static_cast<Map* >(result)->at(e.text);
+	}
+	return result;
+}
+
 
 } // Namespace Nodebuilder
 

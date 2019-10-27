@@ -318,7 +318,16 @@ reference_newelement
 	}
 	| '['  SCALAR_PLAINTEXT ']' {
 		std::cout << "Index reference element" << std::endl;
-		$$ = {"", 4, true};
+		bool space = false;
+		for (const char c : $2)
+		{
+			// Here we check if there are forbidden symbols in index string.
+			// Spaces in the begin and end are available
+			if (is_spacer(c)) { space = true; continue; }
+			if (space || '0' > c || c > '9') throw Exception::Exception_nodebuilder("Unable to convert [" + $2 + "] into index in reference", builder.get_filename());
+		}
+		size_t idx = std::stoul($2);
+		$$ = {"", idx, true};
 	}
 	;
 

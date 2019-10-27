@@ -448,6 +448,18 @@ namespace Test
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
+				CMP_NUM(builder.root_->size(), 11, "Map size");
+				CMP_NUM(builder.references_.size(), 8, "Number of references");
+				CMP_TYPE(Node(builder.root_)["КЛЮЧИК"].get_type(), LSCL::NODETYPE_LINK, "element КЛЮЧИК type");
+				TEST_BOOL( ((Link*)(builder.root_->at("КЛЮЧИК")))->linked != nullptr, "linked node КЛЮЧИК is NULL" );
+				CMP_TEXT(Node(builder.root_)["КЛЮЧИК"].get<std::string>(), "значение", "element КЛЮЧИК linked value");
+				CMP_TEXT(Node(builder.root_)["ключик0"].get<std::string>(), "two", "element ключик0 linked value");
+				CMP_TEXT(Node(builder.root_)["ключик1"].get<std::string>(), "kok", "element ключик1 linked value");
+				CMP_TEXT(Node(builder.root_)["ключик2"].get<std::string>(), "kok", "element ключик2 linked value");
+				CMP_TEXT(Node(builder.root_)["ключик3"].get<std::string>(), "lol", "element ключик3 linked value");
+				CMP_TEXT(Node(builder.root_)["ключик4"].get<std::string>(), "lol", "element ключик4 linked value");
+				CMP_TEXT(Node(builder.root_)["ключик5"].get<std::string>(), "lol", "element ключик5 linked value");
+				CMP_TEXT(Node(builder.root_)["ключик6"].get<std::string>(), "lol", "element ключик6 linked value");
 			}
 		}
 		catch (LSCL::Exception::Exception_nodebuilder &e)

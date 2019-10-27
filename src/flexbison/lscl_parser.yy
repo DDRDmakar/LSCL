@@ -80,9 +80,6 @@
 
 %type  <LSCL::Scalar*>                             scalar
 %type  <LSCL::Scalar*>                             scalar_quoted
-%type  <std::string>                               link_set
-%type  <std::string>                               link_use
-%type  <std::string>                               link_copy
 %type  <Node_internal*>                            node
 %type  <Node_internal*>                            node_1
 %type  <Node_internal*>                            node_2
@@ -91,6 +88,10 @@
 %type  <LSCL::List::lscl_list*>                    lscl_list_body
 %type  <Node_internal*>                            lscl_list
 
+%type  <std::string>                  link_set
+%type  <LSCL::Link*>                  link_use
+
+%type <Link::lscl_path*>              reference
 %type <Link::lscl_path*>              reference_body
 %type <Link::lscl_path_element>       reference_newelement
 
@@ -124,16 +125,9 @@ node_2
 	| lscl_list { std::cout << "node_2: list\n"; $$ = $1; }
 	| scalar { std::cout << "node_2: scalar\n"; $$ = $1; }
 	| link_use {
-		std::cout << "node_2: link usage: " << $1 << std::endl;
-		Link *tl = new Link($1, false, false);
-		builder.use_link($1, tl);
-		$$ = tl;
-	}
-	| link_copy {
-		std::cout << "node_2: linked node copying: " << $1 << std::endl;
-		Link *tl = new Link($1, false, true);
-		builder.use_link($1, tl);
-		$$ = tl;
+		//std::cout << "node_2: link: " << $1 << std::endl;
+		//builder.use_link(name, $1);
+		$$ = $1;
 	}
 	;
 
@@ -269,25 +263,37 @@ link_use
 	: LINK_USE {
 		std::string ts = $1;  // Temporary string
 		ts.erase(ts.begin()); // Remove first symbol
-		$$ = ts;              // Return as name
+		Link *lp = new Link(ts, false);
+		builder.use_link(ts, lp);
+		$$ = lp;
 	}
 	| '*' scalar_quoted {
-		$$ = $2->value;        // Just return $2 text
+		Link *lp = new Link($2->value, false);
+		builder.use_link($2->value, lp);
+		$$ = lp;
 	}
 	| '*' reference {
-		$$ = "ssssssss";
+		Link *lp = new Link($2, false);
+		builder.use_ref(lp);
+		$$ = lp;
 	}
-	;
-
-// Create a copy of linked node
-link_copy
-	: LINK_COPY {
+	// Create a copy of linked node
+	| LINK_COPY {
 		std::string ts = $1;  // Temporary string
 		ts.erase(ts.begin()); // Remove first symbol
-		$$ = ts;              // Return as name
+		Link *lp = new Link(ts, true);
+		builder.use_link(ts, lp);
+		$$ = lp;
 	}
 	| '@' scalar_quoted {
-		$$ = $2->value;        // Just return $2 text
+		Link *lp = new Link($2->value, true);
+		builder.use_link($2->value, lp);
+		$$ = lp;
+	}
+	| '@' reference {
+		Link *lp = new Link($2, true);
+		builder.use_ref(lp);
+		$$ = lp;
 	}
 	;
 
@@ -295,13 +301,9 @@ link_copy
 reference
 	: '(' reference_body ')' {
 		std::cout << "REFERENCE ";
-		
-		for (const auto &e : *$2)
-		{
-			std::cout << e.text << '|' << e.idx << '|' << e.is_idx << "    ";
-		}
+		for (const auto &e : *$2) std::cout << e.text << '|' << e.idx << '|' << e.is_idx << "    ";
 		std::cout << std::endl;
-		
+		$$ = $2;
 	}
 	;
 
@@ -327,9 +329,9 @@ reference_body
 		temp_ptr->push_back($1);
 		$$ = temp_ptr;
 	}
-	| reference_body reference_newelement {
+	| reference_body '.' reference_newelement {
 		std::cout << "Reference next element" << std::endl;
-		$1->push_back($2);
+		$1->push_back($3);
 		$$ = $1;
 	}
 	;

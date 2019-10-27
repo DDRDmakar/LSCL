@@ -137,19 +137,26 @@ namespace LSCL
 	
 	
 	
-	Link::Link(const std::string &link_name, const bool linktype, const bool copy, Node_internal *parent) :
+	Link::Link(const std::string &link_name, const bool copy, Node_internal *parent) :
 		Node_internal(parent, NODETYPE_LINK),
 		link_name (link_name),
-		linktype (linktype),
+		linktype (false),
 		copy (copy),
 		linked (nullptr)
 	{}
 	
-	Link::Link(const bool linktype, const bool copy, Node_internal *parent) :
+	Link::Link(const bool copy, Node_internal *parent) :
 		Node_internal(parent, NODETYPE_LINK),
-		linktype (linktype),
+		linktype (true),
 		copy (copy),
 		linked (nullptr)
+	{}
+	
+	Link::Link(const lscl_path *address, const bool copy, Node_internal *parent) :
+		Node_internal(parent, NODETYPE_LINK),
+		linktype (true),
+		copy (copy),
+		address (*address)
 	{}
 	
 	Link::~Link(void)

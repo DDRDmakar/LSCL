@@ -55,6 +55,7 @@ namespace LSCL
 			std::string filename_; // Name of processed file (empty if no file)
 			std::unordered_map<std::string, Node_internal*> links_; // Named links to nodes
 			std::unordered_map<std::string, Link*> linked_nodes_;   // Nodes which should be linked by named links
+			std::list<Link*> references_; // Nodes which should be linked by references (absolute path)
 			
 			void assign_links(void); // Assign links to link names after all objects are created
 			void build_tree(std::istream &input);
@@ -70,7 +71,8 @@ namespace LSCL
 			const std::string& get_filename(void) const;
 			
 			void set_link(const std::string &linkname, Node_internal *n);
-			void use_link(const std::string &linkname, Link          *n);
+			void use_link(const std::string &linkname, Link *n);
+			void use_ref(Link *n);
 			
 			std::string process_scalar_plaintext(const std::string &input) const;
 			// 0 - nothing, 1 - preserve newlines, 2 - preserve everything

@@ -429,6 +429,10 @@ void Builder::use_link(const std::string &linkname, Link *n)
 {
 	linked_nodes_.insert( { linkname, n } );
 }
+void Builder::use_ref(Link *n)
+{
+	references_.push_back(n);
+}
 
 } // Namespace Nodebuilder
 

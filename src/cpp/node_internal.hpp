@@ -133,9 +133,9 @@ namespace LSCL
 	public:
 		typedef struct lscl_path_element
 		{
-			std::string text;
-			size_t      idx;
-			bool        is_idx;
+			std::string text;   // Key
+			size_t      idx;    // List index
+			bool        is_idx; // If current element is list index
 		} lscl_path_element;
 		typedef std::list<lscl_path_element> lscl_path;
 		
@@ -148,13 +148,16 @@ namespace LSCL
 		// Link constructor
 		Link(
 			const std::string &link_name,
-			const bool linktype,
 			const bool copy = false,
 			Node_internal *parent = nullptr
 		);
 		// Reference constructor
 		Link(
-			const bool linktype,
+			const bool copy = false,
+			Node_internal *parent = nullptr
+		);
+		Link(
+			const lscl_path *address,
 			const bool copy = false,
 			Node_internal *parent = nullptr
 		);

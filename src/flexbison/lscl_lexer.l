@@ -52,7 +52,7 @@ using token = LSCL::Nodebuilder::LSCL_Parser::token;
 %option noyywrap
 %option c++
 
-link_unquoted     [^ '\",\{\}\[\]\<\>\:/\+\n&\t\(\)@]+
+link_unquoted     [^ '\".,\(\)\{\}\[\]\<\>\:/\+\n&\*@\t]+
 
 %%
 %{
@@ -78,7 +78,7 @@ link_unquoted     [^ '\",\{\}\[\]\<\>\:/\+\n&\t\(\)@]+
 	return token::SCALAR_SINGLE_Q;
 }
 
-[^ '\",\(\)\{\}\[\]\<\>\:/\+\n&\*\t@]([^'\",\(\)\{\}\[\]\<\>\:/\+\n@]|\/[^\/])* {
+{link_unquoted}([^'\".,\(\)\{\}\[\]\<\>\:/\+\n\&\*@\t]|\/[^\/])* {
 	
 	std::cout << "plaintext: |" << yytext << '|' << std::endl;
 	yylval->build<std::string>(yytext);

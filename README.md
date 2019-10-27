@@ -1,5 +1,6 @@
 # LSCL [under develop]
 ### Local Stuff Configuration Language
+![Alt text](logo/lscl_logo.png?raw=true "Title")
 # Intro
 LSCL is an open-standard file format that uses human-readable text to represent data objects.  
 Creation of this language was inspired by YAML, JSON and of cource C++ languages. Special thanks to creators of YAML-CPP and RapidJSON libraries.  

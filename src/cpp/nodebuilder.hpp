@@ -23,6 +23,7 @@
 #include <sstream>
 
 #include "node_internal.hpp"
+#include "node.hpp"
 
 #include "../flexbison/lscl_scanner.hpp"
 #include "../../build/lscl_parser.tab.hh"
@@ -70,6 +71,7 @@ namespace LSCL
 			
 			void setroot(Node_internal *newroot);
 			const std::string& get_filename(void) const;
+			Node getroot(void) const;
 			
 			void set_link(const std::string &linkname, Node_internal *n);
 			void use_link(const std::string &linkname, Link *n);

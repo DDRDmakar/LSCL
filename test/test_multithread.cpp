@@ -30,20 +30,15 @@ void* lscl_routine(void *arg)
 		"}";
 		std::stringstream ss(s);
 		LSCL::Nodebuilder::Builder builder(ss);
-		//if (builder.root_->size() != 11) { std::cout << "Error"; return 1; }
-		
-		//CMP_NUM(builder.root_->size(), 11, "Map size");
-		//CMP_NUM(builder.references_.size(), 8, "Number of references");
-		//CMP_TYPE(Node(builder.root_)["КЛЮЧИК"].get_type(), LSCL::NODETYPE_LINK, "element КЛЮЧИК type");
-		//TEST_BOOL( ((Link*)(builder.root_->at("КЛЮЧИК")))->linked != nullptr, "linked node КЛЮЧИК is NULL" );
-		//CMP_TEXT(Node(builder.root_)["КЛЮЧИК"].get<std::string>(), "значение", "element КЛЮЧИК linked value");
-		//CMP_TEXT(Node(builder.root_)["ключик0"].get<std::string>(), "two", "element ключик0 linked value");
-		//CMP_TEXT(Node(builder.root_)["ключик1"].get<std::string>(), "kok", "element ключик1 linked value");
-		//CMP_TEXT(Node(builder.root_)["ключик2"].get<std::string>(), "kok", "element ключик2 linked value");
-		//CMP_TEXT(Node(builder.root_)["ключик3"].get<std::string>(), "lol", "element ключик3 linked value");
-		//CMP_TEXT(Node(builder.root_)["ключик4"].get<std::string>(), "lol", "element ключик4 linked value");
-		//CMP_TEXT(Node(builder.root_)["ключик5"].get<std::string>(), "lol", "element ключик5 linked value");
-		//CMP_TEXT(Node(builder.root_)["ключик6"].get<std::string>(), "lol", "element ключик6 linked value");
+		if (builder.getroot().size() != 11) { std::cout << "Error - map size" << std::endl; exit(1); }
+		if (builder.getroot()["КЛЮЧИК"].get<std::string>() != "значение") { std::cout << "Error - КЛЮЧИК element" << std::endl; exit(1); }
+		if (builder.getroot()["ключик0"].get<std::string>() != "two") { std::cout << "Error - ключик0 element" << std::endl; exit(1); }
+		if (builder.getroot()["ключик1"].get<std::string>() != "kok") { std::cout << "Error - ключик1 element" << std::endl; exit(1); }
+		if (builder.getroot()["ключик2"].get<std::string>() != "kok") { std::cout << "Error - ключик2 element" << std::endl; exit(1); }
+		if (builder.getroot()["ключик3"].get<std::string>() != "lol") { std::cout << "Error - ключик3 element" << std::endl; exit(1); }
+		if (builder.getroot()["ключик4"].get<std::string>() != "lol") { std::cout << "Error - ключик4 element" << std::endl; exit(1); }
+		if (builder.getroot()["ключик5"].get<std::string>() != "lol") { std::cout << "Error - ключик5 element" << std::endl; exit(1); }
+		if (builder.getroot()["ключик6"].get<std::string>() != "lol") { std::cout << "Error - ключик6 element" << std::endl; exit(1); }
 	}
 }
 
@@ -53,18 +48,21 @@ int main()
 	if (pthread_create(&t1, NULL, lscl_routine, NULL))
 	{
 		std::cout << "Error creating CLI thread" << std::endl;
+		return 1;
 	}
 	
 	pthread_t t2;
 	if (pthread_create(&t2, NULL, lscl_routine, NULL))
 	{
 		std::cout << "Error creating CLI thread" << std::endl;
+		return 1;
 	}
 	
 	pthread_t t3;
 	if (pthread_create(&t3, NULL, lscl_routine, NULL))
 	{
 		std::cout << "Error creating CLI thread" << std::endl;
+		return 1;
 	}
 	
 	pthread_join(t1, NULL);

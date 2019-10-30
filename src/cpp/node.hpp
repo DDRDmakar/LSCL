@@ -51,6 +51,7 @@ namespace LSCL
 		void insert(      Node_internal *element, const size_t idx = SIZE_MAX);
 		void insert(const Node          &element, const std::string &key);
 		void insert(      Node_internal *element, const std::string &key);
+		size_t size(void) const;
 		
 		template <typename T>
 		T get(void) const;

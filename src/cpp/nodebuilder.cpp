@@ -87,6 +87,11 @@ const std::string& Builder::get_filename(void) const
 	return filename_;
 }
 
+Node Builder::getroot(void) const
+{
+	return Node(root_);
+}
+
 /**
  * This function uses flex-bison parser to build tree
  * 

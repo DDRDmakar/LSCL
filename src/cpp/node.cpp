@@ -34,6 +34,11 @@ namespace LSCL
 		return Node(core->parent);
 	}
 	
+	size_t Node::size(void) const
+	{
+		return core->size();
+	}
+	
 	//=====[ S C A L A R ]=====//
 	
 	

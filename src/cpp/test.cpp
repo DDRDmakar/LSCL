@@ -461,6 +461,15 @@ namespace Test
 				CMP_TEXT(Node(builder.root_)["ключик5"].get<std::string>(), "lol", "element ключик5 linked value");
 				CMP_TEXT(Node(builder.root_)["ключик6"].get<std::string>(), "lol", "element ключик6 linked value");
 			}
+			{
+				std::string s = 
+				"[                                                                     \n"
+				",    `kok`                                                            \n"
+				"]                                                                     \n";
+				tb = data.add(s);
+				std::stringstream ss(s);
+				LSCL::Nodebuilder::Builder builder(ss);
+			}
 		}
 		catch (LSCL::Exception::Exception_nodebuilder &e)
 		{

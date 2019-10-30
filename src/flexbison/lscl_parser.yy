@@ -69,6 +69,7 @@
 %token <std::string>         SCALAR_PLAINTEXT
 %token <std::string>         SCALAR_DOUBLE_Q
 %token <std::string>         SCALAR_SINGLE_Q
+%token <std::string>         SCALAR_ACUTE_Q
 %token <std::string>         LINK_SET
 %token <std::string>         LINK_USE
 %token <std::string>         LINK_COPY
@@ -90,6 +91,8 @@
 %type <Link::lscl_path*>              reference_body
 %type <Link::lscl_path_element>       reference_newelement
 
+%type  <Node_internal*>               script_use
+
 %locations
 
 %%
@@ -110,7 +113,7 @@ node
 
 node_1
 	: node_2 { $$ = $1; }
-	| node_1 '+' node_2 {
+	| node_1 '+' node_2 { // Sum two nodes
 		$$ = $1;
 	}
 	;
@@ -124,6 +127,7 @@ node_2
 		//builder.use_link(name, $1);
 		$$ = $1;
 	}
+	| script_use { $$ = $1; }
 	;
 
 lscl_list
@@ -339,6 +343,19 @@ reference_body
 		$$ = $1;
 	}
 	;
+
+/*node_inherited
+	: '~' reference {
+	}*/
+	
+script_use
+	: SCALAR_ACUTE_Q {
+		std::string script = builder.process_acute_text($1);
+		std::cout << "Script " << script << std::endl;
+		$$ = new Scalar(script, $1);
+	}
+	;
+
 
 %%
 

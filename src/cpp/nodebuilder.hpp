@@ -81,6 +81,7 @@ namespace LSCL
 			// 0 - nothing, 1 - preserve newlines, 2 - preserve everything
 			std::string process_scalar_quotes_single(const std::string &input, const int preserve_newline) const;
 			std::string process_scalar_quotes_double(const std::string &input, const int preserve_newline) const;
+			std::string process_acute_text(const std::string &input) const;
 		};
 		
 	} // Namespace Nodebuilder

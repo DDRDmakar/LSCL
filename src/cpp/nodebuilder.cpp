@@ -408,6 +408,60 @@ std::string Builder::process_scalar_quotes_double(const std::string &input, cons
 }
 
 
+std::string Builder::process_acute_text(const std::string &input) const
+{
+	std::string accum;
+	
+	bool quote          = false;
+//bool skiping_spaces = false;
+	bool begin          = true;
+	
+	if (input.front() != '`' || input.back() != '`') throw Exception::Exception_nodebuilder("Input script form is incorrect");
+	
+	for (const register char c : input)
+	{
+// Skipping blank space before value start and in the beginning
+// of each line (if it is multiline scalar value)
+//if (skiping_spaces)
+//{
+//	if (c == ' ' || c == '\t') continue;
+//	else skiping_spaces = false;
+//}
+		
+		// Do not trigger on first quote
+		if (begin)
+		{
+			begin = false;
+			continue;
+		}
+		
+		// One acute escapes another one (`` in config will be parsed as `)
+		if (c == '`' && !begin)
+		{
+			if (quote) accum.push_back('`');
+			quote = !quote;
+			continue;
+		}
+		quote = false;
+		
+		// If function meets line-break
+		if (c == '\n')
+		{
+			accum.push_back('\n');
+//skiping_spaces = (preserve_newline != 2);
+			continue;
+		}
+		
+		// Push current character into collector
+		accum.push_back(c);
+	} // End for
+	
+	if (!quote) throw Exception::Exception_nodebuilder("Input script text is not in ` ` quotes");
+	
+	return accum;
+}
+
+
 void Builder::assign_links(void)
 {
 	for (auto &e : linked_nodes_)

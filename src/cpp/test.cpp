@@ -432,19 +432,19 @@ namespace Test
 			}
 			{
 				std::string s = 
-				"{"
-				",    kek:    kok"
-				",    lel:    {lel: {lel: {lel:lol     }}   }"
-				",    lesley: [one, two, three, {\"ключ\": \"значение\"}, five]"
-				",    КЛЮЧИК   :    *(lesley.[3].ключ)"
-				",    ключик0  :    *(lesley.[1])"
-				",    ключик1  :    *(\"kek\")"
-				",    ключик2  :    *(kek)"
-				",    ключик3  :    *(lel.lel.lel.lel)"
-				",    ключик4  :    *('lel'.lel.lel.lel)"
-				",    ключик5  :    *(lel.'lel'.lel.lel)"
-				",    ключик6  :    *(lel.lel.lel.'lel')"
-				"}";
+				"{                                                                     \n"
+				",    kek:    kok                                                      \n"
+				",    lel:    {lel: {lel: {lel:lol     }}   }                          \n"
+				",    lesley: [one, two, three, {\"ключ\": \"значение\"}, five]        \n"
+				",    КЛЮЧИК   :    *(lesley.[3].ключ)                                 \n"
+				",    ключик0  :    *(lesley.[1])                                      \n"
+				",    ключик1  :    *(\"kek\")                                         \n"
+				",    ключик2  :    *(kek)                                             \n"
+				",    ключик3  :    *(lel.lel.lel.lel)                                 \n"
+				",    ключик4  :    *('lel'.lel.lel.lel)                               \n"
+				",    ключик5  :    *(lel.'lel'.lel.lel)                               \n"
+				",    ключик6  :    *(lel.lel.lel.'lel')                               \n"
+				"}                                                                     \n";
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);

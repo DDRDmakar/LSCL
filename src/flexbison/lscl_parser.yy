@@ -64,12 +64,7 @@
 }
 
 %define parse.assert
-
 %define api.value.type variant
-//%union {
-//	std::string str;
-//	LSCL::Node_internal node;
-//}
 
 %token <std::string>         SCALAR_PLAINTEXT
 %token <std::string>         SCALAR_DOUBLE_Q

@@ -35,8 +35,9 @@ project(lscl
 
 set(CMAKE_CXX_COMPILER g++)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lm -Os -g -pedantic -Wextra -Wall -std=c++11 -Wno-deprecated-register")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lm -Os -g -pedantic -Wextra -Wall -std=c++11 -Wno-deprecated-register -l pthread")
 
+find_package(Threads REQUIRED)
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
 find_package(Doxygen)
@@ -88,6 +89,9 @@ set( ALLSRC
 
 # this is the "object library" target: compiles the sources only once
 add_library(lscl_object OBJECT ${ALLSRC})
+
+# -l pthread
+#target_link_libraries(lscl_object, ${CMAKE_THREAD_LIBS_INIT})
 
 # shared libraries need PIC
 set_property(TARGET lscl_object PROPERTY POSITION_INDEPENDENT_CODE 1)

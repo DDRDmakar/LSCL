@@ -32,28 +32,29 @@
  * 
  */
 
-#define NUM_PIPES         3
+#define LSCL_NUM_PIPES         3
 
-#define PIPE_CHILD_STDIN  0
-#define PIPE_CHILD_STDOUT 1
-#define PIPE_CHILD_STDERR 2
+#define LSCL_PIPE_CHILD_STDIN  0
+#define LSCL_PIPE_CHILD_STDOUT 1
+#define LSCL_PIPE_CHILD_STDERR 2
 
 // Always in a pipe[], pipe[0] is for read and pipe[1] is for write
-#define PIPE_RD 0
-#define PIPE_WR 1
+#define LSCL_PIPE_RD 0
+#define LSCL_PIPE_WR 1
 
-#define PARENT_RD_FD ( pipes[PIPE_CHILD_STDOUT][PIPE_RD] )
-#define PARENT_WR_FD ( pipes[PIPE_CHILD_STDIN][PIPE_WR]  )
-#define PARENT_ER_FD ( pipes[PIPE_CHILD_STDERR][PIPE_RD] )
+#define LSCL_PARENT_RD_FD ( pipes[LSCL_PIPE_CHILD_STDOUT][LSCL_PIPE_RD] )
+#define LSCL_PARENT_WR_FD ( pipes[LSCL_PIPE_CHILD_STDIN][LSCL_PIPE_WR]  )
+#define LSCL_PARENT_ER_FD ( pipes[LSCL_PIPE_CHILD_STDERR][LSCL_PIPE_RD] )
 
-#define CHILD_RD_FD  ( pipes[PIPE_CHILD_STDIN][PIPE_RD]  )
-#define CHILD_WR_FD  ( pipes[PIPE_CHILD_STDOUT][PIPE_WR] )
-#define CHILD_ER_FD  ( pipes[PIPE_CHILD_STDERR][PIPE_WR] )
+#define LSCL_CHILD_RD_FD  ( pipes[LSCL_PIPE_CHILD_STDIN][LSCL_PIPE_RD]  )
+#define LSCL_CHILD_WR_FD  ( pipes[LSCL_PIPE_CHILD_STDOUT][LSCL_PIPE_WR] )
+#define LSCL_CHILD_ER_FD  ( pipes[LSCL_PIPE_CHILD_STDERR][LSCL_PIPE_WR] )
 
 struct Python_listener_args
 {
 	int child_stdout_fd;
 	int child_stderr_fd;
+	int timeout_ms_stdout_polling;
 	bool *python_is_active;
 	std::string *accum;
 };
@@ -64,7 +65,7 @@ void* python_listener(void *a)
 	
 	Python_listener_args *args = (Python_listener_args*)a;
 	
-	char buffer[256];
+	char buffer[LSCL_SCRIPT_READ_BUFFER_SIZE];
 	int count;
 	bool python_is_active_2 = true;
 	while (python_is_active_2)
@@ -81,12 +82,12 @@ void* python_listener(void *a)
 		pfds[1].revents = 0;
 		
 		//std::cout << "Polling\n";
-		poll(pfds, 3, 100);
+		poll(pfds, 3, args->timeout_ms_stdout_polling);
 		
 		if (pfds[0].revents & POLLIN)
 		{
 			std::cout << "Reading stdout\n";
-			count = read(args->child_stdout_fd, buffer, 255);
+			count = read(args->child_stdout_fd, buffer, LSCL_SCRIPT_READ_BUFFER_SIZE-1);
 			buffer[count] = '\0';
 			std::cout << buffer << std::endl;
 			args->accum->append(buffer);
@@ -95,7 +96,7 @@ void* python_listener(void *a)
 		if (pfds[1].revents & POLLIN)
 		{
 			std::cout << "Reading stderr\n";
-			count = read(args->child_stderr_fd, buffer, 255);
+			count = read(args->child_stderr_fd, buffer, LSCL_SCRIPT_READ_BUFFER_SIZE-1);
 			buffer[count] = '\0';
 			std::cout << buffer << std::endl;
 		}
@@ -106,16 +107,16 @@ void* python_listener(void *a)
 	return NULL;
 }
 
-std::string get_script_output(std::string &script)
+std::string Script::execute(const std::string &script) const
 {
 	std::string accum;
 		
-	int pipes[NUM_PIPES][2];
+	int pipes[LSCL_NUM_PIPES][2];
 	
 	// pipes for parent to write and read
-	pipe(pipes[PIPE_CHILD_STDIN]);
-	pipe(pipes[PIPE_CHILD_STDOUT]);
-	pipe(pipes[PIPE_CHILD_STDERR]);
+	pipe(pipes[LSCL_PIPE_CHILD_STDIN]);
+	pipe(pipes[LSCL_PIPE_CHILD_STDOUT]);
+	pipe(pipes[LSCL_PIPE_CHILD_STDERR]);
 	
 	pid_t child = fork();
 	if (child < 0)
@@ -127,7 +128,7 @@ std::string get_script_output(std::string &script)
 	if(!child)
 	{
 		// New process - Script
-		// TODO check if it frees memory
+		// TODO make interpreter configurable
 		char *argv[] =
 		{
 			strdup("python3"),
@@ -136,18 +137,18 @@ std::string get_script_output(std::string &script)
 			nullptr
 		};
 		
-		dup2(CHILD_RD_FD, STDIN_FILENO);
-		dup2(CHILD_WR_FD, STDOUT_FILENO);
-		dup2(CHILD_ER_FD, STDERR_FILENO);
+		dup2(LSCL_CHILD_RD_FD, STDIN_FILENO);
+		dup2(LSCL_CHILD_WR_FD, STDOUT_FILENO);
+		dup2(LSCL_CHILD_ER_FD, STDERR_FILENO);
 		
 		// Close fds not required by child
 		// Also, we don't want the exec'ed program to know these existed
-		close(CHILD_RD_FD);
-		close(CHILD_WR_FD);
-		close(CHILD_ER_FD);
-		close(PARENT_RD_FD);
-		close(PARENT_WR_FD);
-		close(PARENT_ER_FD);
+		close(LSCL_CHILD_RD_FD);
+		close(LSCL_CHILD_WR_FD);
+		close(LSCL_CHILD_ER_FD);
+		close(LSCL_PARENT_RD_FD);
+		close(LSCL_PARENT_WR_FD);
+		close(LSCL_PARENT_ER_FD);
 		
 		execvp(argv[0], argv);
 		// Here we go only if error occured while running execv
@@ -157,17 +158,18 @@ std::string get_script_output(std::string &script)
 	else
 	{
 		// close fds not required by parent
-		close(CHILD_RD_FD);
-		close(CHILD_WR_FD);
-		close(CHILD_ER_FD);
+		close(LSCL_CHILD_RD_FD);
+		close(LSCL_CHILD_WR_FD);
+		close(LSCL_CHILD_ER_FD);
 		
 		// Create python stdout listener thread
 		bool python_is_active = true;
 		pthread_t pylisten_thread;
 		Python_listener_args python_listener_args = 
 		{
-			PARENT_RD_FD,
-			PARENT_ER_FD,
+			LSCL_PARENT_RD_FD,
+			LSCL_PARENT_ER_FD,
+			timeout_ms_stdout_polling,
 			&python_is_active,
 			&accum
 		};
@@ -184,19 +186,19 @@ std::string get_script_output(std::string &script)
 		}
 		// Write python script into pipe
 		//pyprog.push_back('\n');
-		//write(PARENT_WR_FD, pyprog.c_str(), pyprog.size());
+		//write(LSCL_PARENT_WR_FD, pyprog.c_str(), pyprog.size());
 		
 		// Wait for python to exit
 		int status = 0;
 		int waitpid_return;
 		printf("Waiting for child\n");
 		
-		unsigned int n_polls = 100;
+		unsigned int n_polls = _timeout_process_check_number;
 		unsigned int n_checked = 0;
 		do
 		{
 			waitpid_return = waitpid(child, &status, WNOHANG);
-			if (!waitpid_return) usleep(100*1000);
+			if (!waitpid_return) usleep(_timeout_us_process_check_period);
 			++n_checked;
 		}
 		while (
@@ -225,7 +227,7 @@ std::string get_script_output(std::string &script)
 		else
 		{
 			printf("Python is timed out!\n");
-			kill(child, SIGUSR1);
+			kill(child, script_terminate_signal);
 		}
 		printf("joining listener thread\n");
 		// Wait for the python stdout listener to finish
@@ -242,5 +244,30 @@ std::string get_script_output(std::string &script)
 	printf("Returning 0\n");
 	
 	return accum;
+}
+
+
+Script::Script(
+	const std::string      &interpreter,
+	unsigned int           timeout_ms_process_check,
+	unsigned int           timeout_process_check_number,
+	int                    timeout_ms_stdout_polling,
+	int                    script_terminate_signal,
+	std::list<std::string> *flags_in
+) :
+	_timeout_process_check_number(timeout_process_check_number),
+	_timeout_us_process_check_period((timeout_ms_process_check / _timeout_process_check_number * 1000)),
+	interpreter(interpreter),
+	timeout_ms_stdout_polling(timeout_ms_stdout_polling),
+	script_terminate_signal(script_terminate_signal)
+{
+	if (flags_in) // If we passed this argument
+	{
+		for (const std::string &e : *flags_in) flags.push_back(e);
+	}
+	else
+	{
+		flags = LSCL_SCRIPT_PYTHON_FLAGS;
+	}
 }
 

@@ -19,8 +19,40 @@
 #ifndef _H_LSCL_SCRIPT
 #define _H_LSCL_SCRIPT
 
+#include <signal.h>
 #include <string.h>
+#include <list>
+
+#include "defines.hpp"
 
 std::string get_script_output(std::string &script);
+
+class Script
+{
+private:
+	unsigned int _timeout_process_check_number;
+	useconds_t   _timeout_us_process_check_period;
+	
+protected:
+	
+public:
+	
+	std::string  interpreter;
+	int          timeout_ms_stdout_polling;
+	int          script_terminate_signal;
+	std::list<std::string> flags;
+	
+	Script(
+		const std::string      &interpreter                 = LSCL_SCRIPT_INTERPRETER,
+		unsigned int           timeout_ms_process_check     = LSCL_SCRIPT_TIMEOUT_MS_PROCESS_CHECK,
+		unsigned int           timeout_process_check_number = LSCL_SCRIPT_TIMEOUT_PROCESS_CHECK_NUMBER,
+		int                    timeout_ms_stdout_polling    = LSCL_SCRIPT_TIMEOUT_MS_STDOUT_POLLING,
+		int                    script_terminate_signal      = LSCL_SCRIPT_TERMINATE_SIGNAL,
+		std::list<std::string> *flags_in                    = nullptr
+	);
+	
+	std::string execute(const std::string &script) const;
+	
+};
 
 #endif // _H_LSCL_SCRIPT

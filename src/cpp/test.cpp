@@ -463,9 +463,15 @@ namespace Test
 			}
 			{
 				std::string s = 
-				"[                                                                     \n"
-				",    `kok`                                                            \n"
-				"]                                                                     \n";
+				"[                                                                   \n"
+				"    `                                                               \n"
+				"print('[')\n"
+				"for i in range(10):\n"
+				"	print('%d, ' % i**2)\n"
+				"print(\"'``'\")\n"
+				"print(']')\n"
+				"    `                                                               \n"
+				"]                                                                   \n";
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);

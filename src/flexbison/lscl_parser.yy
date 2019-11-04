@@ -57,6 +57,7 @@
 	
 	// include for all builder functions
 	#include "nodebuilder.hpp"
+	#include "script.hpp"
 	
 	#undef  yylex
 	#define yylex scanner.yylex
@@ -350,9 +351,11 @@ reference_body
 	
 script_use
 	: SCALAR_ACUTE_Q {
-		std::string script = builder.process_acute_text($1);
-		std::cout << "Script " << script << std::endl;
-		$$ = new Scalar(script, $1);
+		std::string script_plaintext = builder.process_acute_text($1);
+		Script script;
+		std::string script_result = script.execute(script_plaintext);
+		std::cout << "Script " << script_plaintext << std::endl;
+		$$ = new Scalar(script_result, $1);
 	}
 	;
 

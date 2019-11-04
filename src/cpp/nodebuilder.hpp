@@ -88,4 +88,4 @@ namespace LSCL
 
 } // Namespace LSCL
 
-#endif // _H_LSCL_NODEBUILDER
+#endif // _H_LSCL_BUILDER

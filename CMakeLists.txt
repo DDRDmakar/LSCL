@@ -63,6 +63,7 @@ set( LSCL_SOURCES
 	src/cpp/node_internal.cpp
 	src/cpp/node.cpp
 	src/cpp/test.cpp
+	src/cpp/script.cpp
 )
 
 set( LSCL_HEADERS
@@ -74,6 +75,7 @@ set( LSCL_HEADERS
 	src/cpp/node_internal.hpp
 	src/cpp/node.hpp
 	src/cpp/test.hpp
+	src/cpp/script.hpp
 )
 
 set( ALLSRC

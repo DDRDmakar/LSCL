@@ -50,6 +50,13 @@
 #define LSCL_CHILD_WR_FD  ( pipes[LSCL_PIPE_CHILD_STDOUT][LSCL_PIPE_WR] )
 #define LSCL_CHILD_ER_FD  ( pipes[LSCL_PIPE_CHILD_STDERR][LSCL_PIPE_WR] )
 
+namespace LSCL
+{
+
+namespace Nodebuilder
+{
+
+
 struct Python_listener_args
 {
 	int child_stdout_fd;
@@ -271,3 +278,7 @@ Script::Script(
 	}
 }
 
+
+} // Namespace Nodebuilder
+
+} // Namespace LSCL

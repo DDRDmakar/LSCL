@@ -72,6 +72,8 @@ namespace LSCL
 			void setroot(Node_internal *newroot);
 			const std::string& get_filename(void) const;
 			Node getroot(void) const;
+			Node_internal* getroot_internal(void) const;
+			Node_internal* release_root(void);
 			
 			void set_link(const std::string &linkname, Node_internal *n);
 			void use_link(const std::string &linkname, Link *n);

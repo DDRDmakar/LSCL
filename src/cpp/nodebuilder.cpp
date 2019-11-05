@@ -92,6 +92,16 @@ Node Builder::getroot(void) const
 	return Node(root_);
 }
 
+Node_internal* Builder::getroot_internal(void) const
+{
+	return root_.get();
+}
+
+Node_internal* Builder::release_root(void)
+{
+	return root_.release();
+}
+
 /**
  * This function uses flex-bison parser to build tree
  * 

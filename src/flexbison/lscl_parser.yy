@@ -354,8 +354,11 @@ script_use
 		std::string script_plaintext = builder.process_acute_text($1);
 		Script script;
 		std::string script_result = script.execute(script_plaintext);
-		std::cout << "Script " << script_plaintext << std::endl;
-		$$ = new Scalar(script_result, $1);
+		std::stringstream ss(script_result);
+		LSCL::Nodebuilder::Builder builder2(ss);
+		std::cout << "Script " << script_result << std::endl;
+		std::cout << "======================================" << std::endl;
+		$$ = builder2.release_root();
 	}
 	;
 

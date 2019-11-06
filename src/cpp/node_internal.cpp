@@ -173,4 +173,16 @@ namespace LSCL
 	Node_empty::~Node_empty(void)
 	{}
 	
+	
+	
+	
+	Attached::Attached(Node_internal *attached, Node_internal *parent)
+	:
+		Node_internal(parent, NODETYPE_ATTACHED),
+		attached (attached)
+	{}
+	
+	Attached::~Attached(void)
+	{}
+	
 } // Namespace LSCL

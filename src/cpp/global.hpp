@@ -31,11 +31,12 @@ namespace LSCL
 
 enum NODETYPE
 {
-	NODETYPE_NONE   = 0,
-	NODETYPE_MAP    = 1,
-	NODETYPE_LIST   = 2,
-	NODETYPE_SCALAR = 3,
-	NODETYPE_LINK   = 4
+	NODETYPE_NONE     = 0,
+	NODETYPE_MAP      = 1,
+	NODETYPE_LIST     = 2,
+	NODETYPE_SCALAR   = 3,
+	NODETYPE_LINK     = 4,
+	NODETYPE_ATTACHED = 5
 };
 
 std::string get_nodetype_name(NODETYPE type);

@@ -37,12 +37,40 @@ namespace LSCL
 	
 	namespace Nodebuilder
 	{
+		// Function to process script insertion in config
+		void* script_processor(void *a);
+		
 		/*
 		* It builds a tree of nodes from text stream
 		* 
 		*/
 		class Builder
 		{
+			
+		public:
+			
+			enum EXECUTED_TYPE
+			{
+				EXECUTED_TYPE_NONE,
+				EXECUTED_TYPE_SCRIPT,
+				EXECUTED_TYPE_INCLUDE
+			};
+			
+			struct Executed_args
+			{
+				std::string   in;
+				Node_internal *out;
+				bool done; // If parsing is done
+				Exception::Exception_nodebuilder *e; // If done and *out is nullptr we throw this exception
+			};
+			
+			struct Executed
+			{
+				EXECUTED_TYPE type;
+				pthread_t thr;
+				Attached *target;
+				Executed_args args;
+			};
 			
 		private:
 			
@@ -57,11 +85,13 @@ namespace LSCL
 			std::unordered_map<std::string, Node_internal*> links_; // Named links to nodes
 			std::unordered_map<std::string, Link*> linked_nodes_;   // Nodes which should be linked by named links
 			std::list<Link*> references_; // Nodes which should be linked by references (absolute path)
+			std::list<Executed> executed_list_; // Information about 
 			
 			void assign_links(void); // Assign links to link names after all objects are created
 			void build_tree(std::istream &input);
 			size_t get_line(void) const;
 			Node_internal* dig(const Link::lscl_path &path); // Get pointer to node referenced by given path from root
+			void assign_includes(void);
 			
 		public:
 			
@@ -78,6 +108,7 @@ namespace LSCL
 			void set_link(const std::string &linkname, Node_internal *n);
 			void use_link(const std::string &linkname, Link *n);
 			void use_ref(Link *n);
+			Executed& add_executed(void);
 			
 			std::string process_scalar_plaintext(const std::string &input) const;
 			// 0 - nothing, 1 - preserve newlines, 2 - preserve everything

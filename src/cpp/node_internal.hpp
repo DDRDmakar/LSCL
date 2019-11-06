@@ -173,6 +173,14 @@ namespace LSCL
 	};
 	
 	
+	class Attached : public Node_internal
+	{
+	public:
+		Node_internal *attached;
+		
+		Attached(Node_internal *attached = nullptr, Node_internal *parent = nullptr);
+		~Attached(void) override;
+	};
 	
 	
 	

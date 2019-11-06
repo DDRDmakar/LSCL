@@ -28,6 +28,7 @@
 #include "nodebuilder.hpp"
 #include "exception.hpp"
 #include "global.hpp"
+#include "script.hpp"
 
 namespace LSCL
 {
@@ -145,8 +146,9 @@ void Builder::build_tree(std::istream &input)
 	
 	// ================== POST-PROCESSING PART
 	
-	assign_links();
+	assign_includes();
 	
+	assign_links();
 }
 
 
@@ -493,6 +495,21 @@ void Builder::assign_links(void)
 	}
 }
 
+void Builder::assign_includes(void)
+{
+	// Here we need timeout
+	for (const auto &e : executed_list_)
+	{
+		if (pthread_join(e.thr, NULL))
+		{
+			throw Exception::Exception_nodebuilder("Unable to join script-processing thread", get_filename());
+		}
+		if (e.args.done)
+		{
+			e.target->attached = e.args.out;
+		}
+	}
+}
 
 void Builder::set_link(const std::string &linkname, Node_internal *n)
 {
@@ -520,6 +537,40 @@ Node_internal* Builder::dig(const Link::lscl_path &path)
 	return result;
 }
 
+Builder::Executed& Builder::add_executed(void)
+{
+	executed_list_.push_back(Executed());
+	return executed_list_.back();
+}
+
+// Thread
+void* script_processor(void *a)
+{
+	Builder::Executed_args *args = static_cast<Builder::Executed_args*>(a);
+	try
+	{
+		// Run script and get its output
+		Script script; // Script-runner object
+		std::string script_result = script.execute(args->in);
+		// Then parse script output
+		std::stringstream ss(script_result);
+		LSCL::Nodebuilder::Builder builder2(ss);
+		args->out = builder2.release_root();
+		args->done = true;
+	}
+	catch (const Exception::Exception_nodebuilder &e)
+	{
+		//args->e = e;
+		args->done = true;
+	}
+	catch (const std::exception&)
+	{
+		//args->e = Exception::Exception_nodebuilder("Exception thrown while processing script or script output");
+		args->done = true;
+	}
+	
+	return NULL;
+}
 
 } // Namespace Nodebuilder
 

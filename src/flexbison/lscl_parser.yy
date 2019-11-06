@@ -57,7 +57,6 @@
 	
 	// include for all builder functions
 	#include "nodebuilder.hpp"
-	#include "script.hpp"
 	
 	#undef  yylex
 	#define yylex scanner.yylex
@@ -350,15 +349,33 @@ reference_body
 	}*/
 	
 script_use
-	: SCALAR_ACUTE_Q {
-		std::string script_plaintext = builder.process_acute_text($1);
-		Script script;
-		std::string script_result = script.execute(script_plaintext);
-		std::stringstream ss(script_result);
-		LSCL::Nodebuilder::Builder builder2(ss);
-		std::cout << "Script " << script_result << std::endl;
-		std::cout << "======================================" << std::endl;
-		$$ = builder2.release_root();
+	: SCALAR_ACUTE_Q { // Here we execute script in the separate thread
+		
+		Builder::Executed &executed = builder.add_executed();
+		Attached *target = new Attached();
+		
+		executed.type = Builder::EXECUTED_TYPE_SCRIPT;
+		//executed.thr = 
+		executed.target = target;
+		executed.args = {
+			builder.process_acute_text($1),
+			nullptr,
+			false,
+			nullptr
+		};
+		if (
+			pthread_create(
+				&executed.thr,
+				NULL,
+				script_processor,
+				&executed.args
+			)
+		)
+		{
+			throw Exception::Exception_nodebuilder("Unable to create script-processing thread", builder.get_filename());
+		}
+		
+		$$ = target;
 	}
 	;
 

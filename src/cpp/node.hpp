@@ -75,6 +75,13 @@ namespace LSCL
 				return static_cast<LSCL::Scalar*>(coreref.linked)->get<T>();
 				break;
 			}
+			case NODETYPE_ATTACHED:
+			{
+				const Attached &coreref = *( static_cast<LSCL::Attached*>(core) );
+				if (coreref.attached == nullptr) throw Exception::Exception_access("get<>() method called with invalid node (empty include or script)");
+				return static_cast<LSCL::Scalar*>(coreref.attached)->get<T>();
+				break;
+			}
 			default:
 			{
 				throw Exception::Exception_access("get<>() method called on non-scalar node");

@@ -475,6 +475,8 @@ namespace Test
 				tb = data.add(s);
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
+				CMP_NUM(builder.root_->size(), 1, "External list size");
+				CMP_NUM(Node(builder.root_->at(0)).size(), 11, "Internal list size");
 			}
 		}
 		catch (LSCL::Exception::Exception_nodebuilder &e)

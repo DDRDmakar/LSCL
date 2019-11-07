@@ -23,6 +23,7 @@
 #include <pthread.h>
 
 #include "script.hpp"
+#include "nodebuilder.hpp"
 
 /* 
  * since pipes are unidirectional, we need two pipes.
@@ -276,6 +277,38 @@ Script::Script(
 	{
 		flags = LSCL_SCRIPT_PYTHON_FLAGS;
 	}
+}
+
+// Thread
+void* script_processor(void *a)
+{
+	Builder::Executed_args *args = static_cast<Builder::Executed_args*>(a);
+	try
+	{
+		// Run script and get its output
+		Script script; // Script-runner object
+		std::string script_result = script.execute(args->in);
+		// Then parse script output
+		std::stringstream ss(script_result);
+		LSCL::Nodebuilder::Builder builder2(ss);
+		args->out = builder2.release_root();
+		args->done = true;
+	}
+	catch (Exception::Exception_nodebuilder &e)
+	{
+		Exception::Exception_nodebuilder nbe = e;
+		args->e = e;
+		args->done = true;
+		args->out = nullptr;
+	}
+	catch (std::exception&)
+	{
+		args->e = Exception::Exception_nodebuilder("Exception thrown while processing script or script output");
+		args->done = true;
+		args->out = nullptr;
+	}
+	
+	return NULL;
 }
 
 

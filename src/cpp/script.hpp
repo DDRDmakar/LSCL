@@ -32,6 +32,9 @@ namespace LSCL
 		
 		std::string get_script_output(std::string &script);
 		
+		// Function to process script insertion in config
+		void* script_processor(void *a);
+		
 		class Script
 		{
 		private:

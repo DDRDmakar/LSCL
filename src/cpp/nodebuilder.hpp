@@ -24,6 +24,7 @@
 
 #include "node_internal.hpp"
 #include "node.hpp"
+#include "exception.hpp"
 
 #include "../flexbison/lscl_scanner.hpp"
 #include "../../build/lscl_parser.tab.hh"
@@ -37,8 +38,6 @@ namespace LSCL
 	
 	namespace Nodebuilder
 	{
-		// Function to process script insertion in config
-		void* script_processor(void *a);
 		
 		/*
 		* It builds a tree of nodes from text stream
@@ -61,7 +60,7 @@ namespace LSCL
 				std::string   in;
 				Node_internal *out;
 				bool done; // If parsing is done
-				Exception::Exception_nodebuilder *e; // If done and *out is nullptr we throw this exception
+				Exception::Exception_nodebuilder e; // If done and *out is nullptr we throw this exception
 			};
 			
 			struct Executed

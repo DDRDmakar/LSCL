@@ -29,45 +29,38 @@ namespace LSCL
 		// This is the base class for all exceptions
 		class Exception : public std::exception
 		{
-			
 		protected:
-			const std::string description;
+			std::string description;
 		public:
-			
-			// Constructor
-			Exception(const std::string &desc = "") : description(desc) {}
+			Exception(const std::string &description = "") : description(description) {}
 			Exception(const Exception&) = default;
-			
-			// The destructor is not allowed to throw exceptions
-			virtual ~Exception() throw() {}
-			
-			// Show message
-			virtual const std::string what() { return "LSCL exception: " + description; }
+			virtual std::string what(void) { return description; }
 		};
 		
-		// Nodebuilder exception
+		// Exceptions while parsing config
 		class Exception_nodebuilder : public Exception
 		{
 		protected:
 			std::string filename;
-			size_t line; // Line counter value
+			size_t lineno;
 		public:
 			Exception_nodebuilder(
-				const std::string &desc = "", 
-				const std::string &f = "", 
-				const size_t l = 0
-			) : 
-				Exception(desc),
-				filename(f),
-				line(l)
+				const std::string &description = "", 
+				const std::string &filename = "", 
+				const size_t lineno = 0
+			)
+			:
+				Exception(description),
+				filename(filename),
+				lineno(lineno)
 			{}
-			// virtual ~Config_exception() throw() {}
-			const std::string what() {
+			
+			std::string what(void) override {
 				return "LSCL nodebuilder exception" + 
 				(
 					filename.empty() ? 
 					"" : 
-					" [file " + filename + "] [line " + std::to_string(line) + "]"
+					" [file " + filename + "] [line " + std::to_string(lineno) + "]"
 				) + 
 				": " + description;
 			}
@@ -78,7 +71,7 @@ namespace LSCL
 		{
 		public:
 			Exception_access(const std::string &desc = "") : Exception(desc) {}
-			const std::string what() { return "LSCL access exception: " + description; }
+			std::string what() override { return "LSCL access exception: " + description; }
 		};
 		
 		// Modify exception
@@ -86,7 +79,7 @@ namespace LSCL
 		{
 		public:
 			Exception_modify(const std::string &desc = "") : Exception(desc) {}
-			const std::string what() { return "LSCL modify exception: " + description; }
+			std::string what() override { return "LSCL modify exception: " + description; }
 		};
 		
 	} // Namespace Exception

@@ -543,34 +543,6 @@ Builder::Executed& Builder::add_executed(void)
 	return executed_list_.back();
 }
 
-// Thread
-void* script_processor(void *a)
-{
-	Builder::Executed_args *args = static_cast<Builder::Executed_args*>(a);
-	try
-	{
-		// Run script and get its output
-		Script script; // Script-runner object
-		std::string script_result = script.execute(args->in);
-		// Then parse script output
-		std::stringstream ss(script_result);
-		LSCL::Nodebuilder::Builder builder2(ss);
-		args->out = builder2.release_root();
-		args->done = true;
-	}
-	catch (const Exception::Exception_nodebuilder &e)
-	{
-		//args->e = e;
-		args->done = true;
-	}
-	catch (const std::exception&)
-	{
-		//args->e = Exception::Exception_nodebuilder("Exception thrown while processing script or script output");
-		args->done = true;
-	}
-	
-	return NULL;
-}
 
 } // Namespace Nodebuilder
 

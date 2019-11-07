@@ -57,6 +57,7 @@
 	
 	// include for all builder functions
 	#include "nodebuilder.hpp"
+	#include "script.hpp"
 	
 	#undef  yylex
 	#define yylex scanner.yylex
@@ -361,7 +362,7 @@ script_use
 			builder.process_acute_text($1),
 			nullptr,
 			false,
-			nullptr
+			Exception::Exception_nodebuilder()
 		};
 		if (
 			pthread_create(

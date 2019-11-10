@@ -418,16 +418,16 @@ namespace Test
 				CMP_TEXT(s2, "val", "az value");
 				CMP_NUM(builder.links_.size(), 1, "Created links number");
 				CMP_TYPE(builder.links_["link"]->type, LSCL::NODETYPE_SCALAR, "linked node type");
-				CMP_TYPE(Node(builder.root_)["as"].get_type(), LSCL::NODETYPE_LINK, "linking node type");
+				CMP_TYPE(builder.root_->at("as")->type, LSCL::NODETYPE_LINK, "linking node type");
 				LSCL::Link &l = *static_cast<LSCL::Link*>(builder.root_->at("as"));
 				TEST_BOOL(l.linked != nullptr, "Link is NULL, pointer is expected");
 				s2 = Node(l.linked).get<std::string>();
 				CMP_TEXT(s2, "val", "as node value");
-				CMP_TYPE(Node(builder.root_)["as2"].get_type(), LSCL::NODETYPE_LINK, "as2 node type");
+				CMP_TYPE(builder.root_->at("as2")->type, LSCL::NODETYPE_LINK, "as2 node type");
 				
-				CMP_TYPE(Node(builder.root_)["as3"].get_type(), LSCL::NODETYPE_LINK, "as3 type");
+				CMP_TYPE(builder.root_->at("as3")->type, LSCL::NODETYPE_LINK, "as3 node type");
 				
-				s2 = Node(builder.root_->at("ke")).get<std::string>();
+				s2 = Node(builder.root_)["ke"].get<std::string>();
 				CMP_TEXT(s2, "ge", "ke value");
 			}
 			{
@@ -450,7 +450,7 @@ namespace Test
 				LSCL::Nodebuilder::Builder builder(ss);
 				CMP_NUM(builder.root_->size(), 11, "Map size");
 				CMP_NUM(builder.references_.size(), 8, "Number of references");
-				CMP_TYPE(Node(builder.root_)["КЛЮЧИК"].get_type(), LSCL::NODETYPE_LINK, "element КЛЮЧИК type");
+				CMP_TYPE(builder.root_->at("КЛЮЧИК")->type, LSCL::NODETYPE_LINK, "element КЛЮЧИК type");
 				TEST_BOOL( ((Link*)(builder.root_->at("КЛЮЧИК")))->linked != nullptr, "linked node КЛЮЧИК is NULL" );
 				CMP_TEXT(Node(builder.root_)["КЛЮЧИК"].get<std::string>(), "значение", "element КЛЮЧИК linked value");
 				CMP_TEXT(Node(builder.root_)["ключик0"].get<std::string>(), "two", "element ключик0 linked value");
@@ -476,7 +476,7 @@ namespace Test
 				std::stringstream ss(s);
 				LSCL::Nodebuilder::Builder builder(ss);
 				CMP_NUM(builder.root_->size(), 1, "External list size");
-				CMP_NUM(Node(builder.root_->at(0)).size(), 11, "Internal list size");
+				CMP_NUM(builder.getroot()[0].size(), 11, "Internal list size");
 			}
 		}
 		catch (LSCL::Exception::Exception_nodebuilder &e)

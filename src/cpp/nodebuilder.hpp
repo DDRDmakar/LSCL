@@ -82,7 +82,7 @@ namespace LSCL
 			std::unique_ptr<Node_internal> root_; // Root of node tree
 			std::string filename_; // Name of processed file (empty if no file)
 			std::unordered_map<std::string, Node_internal*> links_; // Named links to nodes
-			std::unordered_map<std::string, Link*> linked_nodes_;   // Nodes which should be linked by named links
+			std::list<Link*> linked_nodes_; // Nodes which should be linked by named links
 			std::list<Link*> references_; // Nodes which should be linked by references (absolute path)
 			std::list<Executed> executed_list_; // Information about 
 			
@@ -105,7 +105,7 @@ namespace LSCL
 			Node_internal* release_root(void);
 			
 			void set_link(const std::string &linkname, Node_internal *n);
-			void use_link(const std::string &linkname, Link *n);
+			void use_link(Link *n);
 			void use_ref(Link *n);
 			Executed& add_executed(void);
 			

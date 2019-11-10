@@ -123,11 +123,7 @@ node_2
 	: lscl_map { $$ = $1; }
 	| lscl_list { std::cout << "node_2: list\n"; $$ = $1; }
 	| scalar { std::cout << "node_2: scalar\n"; $$ = $1; }
-	| link_use {
-		//std::cout << "node_2: link: " << $1 << std::endl;
-		//builder.use_link(name, $1);
-		$$ = $1;
-	}
+	| link_use { $$ = $1; }
 	| script_use { $$ = $1; }
 	;
 
@@ -264,12 +260,12 @@ link_use
 		std::string ts = $1;  // Temporary string
 		ts.erase(ts.begin()); // Remove first symbol
 		Link *lp = new Link(ts, false);
-		builder.use_link(ts, lp);
+		builder.use_link(lp);
 		$$ = lp;
 	}
 	| '*' scalar_quoted {
 		Link *lp = new Link($2->value, false);
-		builder.use_link($2->value, lp);
+		builder.use_link(lp);
 		$$ = lp;
 	}
 	| '*' reference {
@@ -282,12 +278,12 @@ link_use
 		std::string ts = $1;  // Temporary string
 		ts.erase(ts.begin()); // Remove first symbol
 		Link *lp = new Link(ts, true);
-		builder.use_link(ts, lp);
+		builder.use_link(lp);
 		$$ = lp;
 	}
 	| '@' scalar_quoted {
 		Link *lp = new Link($2->value, true);
-		builder.use_link($2->value, lp);
+		builder.use_link(lp);
 		$$ = lp;
 	}
 	| '@' reference {

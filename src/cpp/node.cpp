@@ -20,9 +20,43 @@
 
 namespace LSCL
 {
-	Node::Node(Node_internal &newcore) : core(&newcore)  {}
-	Node::Node(Node_internal *newcore) : core( newcore)  {}
-	Node::Node(const std::unique_ptr<Node_internal> &newcore) : core(newcore.get()) {}
+	Node::Node(Node_internal &newcore) : core(&newcore)  { check_core(); }
+	Node::Node(Node_internal *newcore) : core( newcore)  { check_core(); }
+	Node::Node(const std::unique_ptr<Node_internal> &newcore) : core(newcore.get()) { check_core(); }
+	
+	inline void Node::check_core(void) const
+	{
+		// Throw an exception if node si constructed from link or attached node
+		if (core->type == NODETYPE_ATTACHED || core->type == NODETYPE_LINK)
+			throw LSCL::Exception::Exception_access("Invalid Node constructor arguments. Node core cannot be of type ATTACHED or LINK, it is LSCL internal type.");
+	}
+	
+	Node_internal* Node::resolve_destination_node(Node_internal *destination) const
+	{
+		while (true)
+		{
+			switch (destination->type)
+			{
+				case NODETYPE_LINK: 
+				{
+					destination = static_cast<Link*>(destination)->linked;
+					if (!destination) throw LSCL::Exception::Exception_access("Accessed link is NULL (not assigned)");
+					break;
+				}
+				case NODETYPE_ATTACHED: 
+				{
+					destination = static_cast<Attached*>(destination)->attached;
+					if (!destination) throw LSCL::Exception::Exception_access("Accessed attached node is NULL (not assigned)");
+					break;
+				}
+				default: 
+				{
+					return destination;
+				}
+			}
+		}
+		return destination;
+	}
 	
 	NODETYPE Node::get_type(void)
 	{
@@ -31,7 +65,7 @@ namespace LSCL
 	
 	Node Node::get_parent(void) const
 	{
-		return Node(core->parent);
+		return Node(core->parent);////////////////////////////////////////////////////////////////////////////////////////////////
 	}
 	
 	size_t Node::size(void) const
@@ -47,7 +81,11 @@ namespace LSCL
 	
 	Node Node::operator[](const size_t idx)
 	{
-		return Node(static_cast<LSCL::List*>(core)->at(idx));
+		return Node(
+			resolve_destination_node(
+				static_cast<LSCL::List*>(core)->at(idx)
+			)
+		);
 	}
 	
 	void Node::insert(const Node &element, const size_t idx)
@@ -57,6 +95,7 @@ namespace LSCL
 	
 	void Node::insert(Node_internal *element, const size_t idx)
 	{
+		if (core->type != NODETYPE_LIST) throw LSCL::Exception::Exception_modify("Trying to insert element into non-list node");
 		LSCL::List::lscl_list &l = static_cast<LSCL::List*>(core)->values_list;
 		
 		if (idx == SIZE_MAX) // idx == last position
@@ -71,6 +110,7 @@ namespace LSCL
 	
 	bool Node::remove(const size_t idx)
 	{
+		if (core->type != NODETYPE_LIST) throw LSCL::Exception::Exception_modify("Trying to remove element by index from non-list node");
 		LSCL::List::lscl_list &l = static_cast<LSCL::List*>(core)->values_list;
 		
 		if (idx >= l.size()) return false;
@@ -84,26 +124,31 @@ namespace LSCL
 	
 	Node Node::operator[](const std::string &key)
 	{
-		return Node(static_cast<LSCL::Map*>(core)->at(key));
+		return Node(
+			resolve_destination_node(
+				static_cast<LSCL::Map*>(core)->at(key)
+			)
+		);
 	}
 	
 	void Node::insert(const Node &element, const std::string &key)
 	{
-		static_cast<LSCL::Map*>(core)->values_map.emplace(std::make_pair(key, element.core)); // Insert node
+		insert(element.core, key);
 	}
 	
 	void Node::insert(Node_internal *element, const std::string &key)
 	{
+		if (core->type != NODETYPE_MAP) throw LSCL::Exception::Exception_modify("Trying to insert element by key into non-map node");
 		static_cast<LSCL::Map*>(core)->values_map.emplace(std::make_pair(key, element)); // Insert node
-		//core->values_map->operator[](key).parent = core;
 	}
 	
 	bool Node::remove(const std::string &key)
 	{
+		if (core->type != NODETYPE_MAP) throw LSCL::Exception::Exception_modify("Trying to remove element by key from non-map node");
 		LSCL::Map::lscl_map &m = static_cast<LSCL::Map*>(core)->values_map;
 		
 		auto res = m.find(key);
-		if (res != m.end())
+		if (res != m.end()) // If such key exists
 		{
 			delete m[key];
 			m.erase(res);

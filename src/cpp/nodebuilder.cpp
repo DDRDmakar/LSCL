@@ -476,18 +476,16 @@ std::string Builder::process_acute_text(const std::string &input) const
 
 void Builder::assign_links(void)
 {
-	for (auto &e : linked_nodes_)
+	for (auto e : linked_nodes_)
 	{
-		auto existing_link = links_.find(e.first);
+		auto existing_link = links_.find(e->link_name);
 		// If such link name was defined
 		if (existing_link != links_.end())
 		{
-			if (e.second->type == NODETYPE_LINK)
-			{
-				e.second->linked = existing_link->second;
-			}
-			else throw LSCL::Exception::Exception_nodebuilder("Using undefined link \"" + e.first + "\"", filename_, get_line());
+			std::cout << "** assigning link\n";
+			e->linked = existing_link->second;
 		}
+		else throw LSCL::Exception::Exception_nodebuilder("Using undefined link \"" + e->link_name + "\"", filename_, get_line());
 	}
 	for (auto &e : references_)
 	{
@@ -515,9 +513,9 @@ void Builder::set_link(const std::string &linkname, Node_internal *n)
 {
 	links_.insert( { linkname, n } );
 }
-void Builder::use_link(const std::string &linkname, Link *n)
+void Builder::use_link(Link *n)
 {
-	linked_nodes_.insert( { linkname, n } );
+	linked_nodes_.push_back(n);
 }
 void Builder::use_ref(Link *n)
 {

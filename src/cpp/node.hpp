@@ -34,6 +34,9 @@ namespace LSCL
 		
 		Node_internal *core; // Real node which is referenced by this object
 		
+		inline void check_core(void) const; // Checks if Node core type is of valid type
+		Node_internal* resolve_destination_node(Node_internal *destination) const; // Iterates through links and attached nodes until it reaches node we can access
+		
 	protected:
 		
 	public:

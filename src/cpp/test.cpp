@@ -465,11 +465,13 @@ namespace Test
 				std::string s = 
 				"[                                                                   \n"
 				"    `                                                               \n"
+				"import time\n"
 				"print('[')\n"
 				"for i in range(10):\n"
 				"	print('%d, ' % i**2)\n"
 				"print(\"'``'\")\n"
 				"print(']')\n"
+				"time.sleep(2)\n"
 				"    `                                                               \n"
 				"]                                                                   \n";
 				tb = data.add(s);

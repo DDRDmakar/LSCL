@@ -86,6 +86,9 @@ namespace LSCL
 			std::list<Link*> references_; // Nodes which should be linked by references (absolute path)
 			std::list<Executed> executed_list_; // Information about 
 			
+			useconds_t   timeout_join_period_us_;
+			unsigned int timeout_join_count_;
+			
 			void assign_links(void); // Assign links to link names after all objects are created
 			void build_tree(std::istream &input);
 			size_t get_line(void) const;
@@ -108,6 +111,7 @@ namespace LSCL
 			void use_link(Link *n);
 			void use_ref(Link *n);
 			Executed& add_executed(void);
+			void set_timeout_join(const unsigned int period, const unsigned int count);
 			
 			std::string process_scalar_plaintext(const std::string &input) const;
 			// 0 - nothing, 1 - preserve newlines, 2 - preserve everything

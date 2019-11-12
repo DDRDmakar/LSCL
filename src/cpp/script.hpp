@@ -38,8 +38,8 @@ namespace LSCL
 		class Script
 		{
 		private:
-			unsigned int _timeout_process_check_number;
-			useconds_t   _timeout_us_process_check_period;
+			unsigned int timeout_process_check_number_;
+			useconds_t   timeout_us_process_check_period_;
 			
 		protected:
 			

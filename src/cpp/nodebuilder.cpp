@@ -24,6 +24,7 @@
 
 #include <string>
 #include <fstream>
+#include <unistd.h>
 
 #include "nodebuilder.hpp"
 #include "exception.hpp"
@@ -50,6 +51,7 @@ Builder::Builder(const std::string &filename) :
 	filename_(filename)
 {
 	if (filename.empty()) throw LSCL::Exception::Exception_nodebuilder("Empty file name is given", filename, get_line());
+	set_timeout_join(LSCL_BUILDER_TIMEOUT_JOIN_PERIOD_MS, LSCL_BUILDER_TIMEOUT_JOIN_COUNT);
 	std::ifstream in_file(filename.c_str());
 	if(!in_file.good()) throw LSCL::Exception::Exception_nodebuilder("Error opening file", filename, get_line());
 	build_tree(in_file);
@@ -59,10 +61,16 @@ Builder::Builder(const std::string &filename) :
 Builder::Builder(std::istream &input)
 {
 	std::cout << "\033[1;36mBuilder constructor\033[0m\n";
+	set_timeout_join(LSCL_BUILDER_TIMEOUT_JOIN_PERIOD_MS, LSCL_BUILDER_TIMEOUT_JOIN_COUNT);
 	if(!input.good() || input.eof()) return;
 	else build_tree(input);
 }
 
+void Builder::set_timeout_join(const unsigned int period, const unsigned int count)
+{
+	timeout_join_period_us_ = period * 1000 / count;
+	timeout_join_count_ = count;
+}
 
 /**
  * Class destructor
@@ -495,17 +503,34 @@ void Builder::assign_links(void)
 
 void Builder::assign_includes(void)
 {
-	// Here we need timeout
+	// Timeout
+	std::cout << "Processing " << executed_list_.size() << " threads" << std::endl;
+	for (unsigned int i = 0; i < timeout_join_count_; ++i)
+	{
+		if (executed_list_.empty()) break;
+		
+		for (auto it = executed_list_.begin(); it != executed_list_.end(); ++it)
+		{
+			if (it->args.done)
+			{
+				if (pthread_join(it->thr, NULL))
+				{
+					throw Exception::Exception_nodebuilder("Unable to join script-processing thread", get_filename());
+				}
+				std::cout << "@ Joined thread" << std::endl;
+				it->target->attached = it->args.out; // Assign parsed structure to its place on tree
+				auto it2 = it;
+				++it;
+				executed_list_.erase(it2); // Remove thread from executed list
+			}
+		}
+		std::cout << "Waiting for join " << timeout_join_period_us_ << std::endl;
+		usleep(timeout_join_period_us_);
+	}
 	for (const auto &e : executed_list_)
 	{
-		if (pthread_join(e.thr, NULL))
-		{
-			throw Exception::Exception_nodebuilder("Unable to join script-processing thread", get_filename());
-		}
-		if (e.args.done)
-		{
-			e.target->attached = e.args.out;
-		}
+		std::cout << "@ Cancelling thread" << std::endl;
+		pthread_cancel(e.thr);
 	}
 }
 

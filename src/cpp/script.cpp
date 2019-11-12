@@ -201,12 +201,12 @@ std::string Script::execute(const std::string &script) const
 		int waitpid_return;
 		printf("Waiting for child\n");
 		
-		unsigned int n_polls = _timeout_process_check_number;
+		unsigned int n_polls = timeout_process_check_number_;
 		unsigned int n_checked = 0;
 		do
 		{
 			waitpid_return = waitpid(child, &status, WNOHANG);
-			if (!waitpid_return) usleep(_timeout_us_process_check_period);
+			if (!waitpid_return) usleep(timeout_us_process_check_period_);
 			++n_checked;
 		}
 		while (
@@ -263,8 +263,8 @@ Script::Script(
 	int                    script_terminate_signal,
 	std::list<std::string> *flags_in
 ) :
-	_timeout_process_check_number(timeout_process_check_number),
-	_timeout_us_process_check_period((timeout_ms_process_check / _timeout_process_check_number * 1000)),
+	timeout_process_check_number_(timeout_process_check_number),
+	timeout_us_process_check_period_((timeout_ms_process_check * 1000 / timeout_process_check_number_)),
 	interpreter(interpreter),
 	timeout_ms_stdout_polling(timeout_ms_stdout_polling),
 	script_terminate_signal(script_terminate_signal)

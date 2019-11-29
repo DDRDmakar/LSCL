@@ -22,7 +22,7 @@
 %debug 
 %defines 
 %define api.namespace {LSCL::Nodebuilder}
-%define parser_class_name {LSCL_Parser}
+%define api.parser.class {LSCL_Parser}
 
 %code requires {
 

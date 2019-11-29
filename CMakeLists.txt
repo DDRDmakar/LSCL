@@ -35,7 +35,7 @@ project(lscl
 
 set(CMAKE_CXX_COMPILER g++)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lm -Os -g -pedantic -Wextra -Wall -std=c++11 -Wno-deprecated-register -l pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lm -Os -g -pedantic -Wextra -Wall -std=c++11 -Wno-deprecated-register")
 
 find_package(Threads REQUIRED)
 find_package(BISON REQUIRED)
@@ -109,6 +109,10 @@ target_include_directories(
 	src/cpp
 	src/flexbison
 	${CMAKE_CURRENT_BINARY_DIR}
+)
+
+target_link_libraries(
+	lscl_object pthread
 )
 
 set_target_properties(
